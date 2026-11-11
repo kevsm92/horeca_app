@@ -46,9 +46,16 @@ CREATE TRIGGER IF NOT EXISTS no_seating_session_delete
 """
 
 def connect(path=":memory:"):
+    """Open a migrated database; never return a partially initialized connection."""
     db = sqlite3.connect(path, isolation_level=None, timeout=5)
-    db.executescript(SCHEMA)
-    return db
+    try:
+        # Import lazily: migration definitions depend on this module's SCHEMA.
+        from tables_migrations import migrate
+        migrate(db)
+        return db
+    except BaseException:
+        db.close()
+        raise
 
 def seat(db, session_id, venue_id, table_id, guests):
     """Atomic seating; DB constraints reject double seating, foreign tables and overcapacity."""
