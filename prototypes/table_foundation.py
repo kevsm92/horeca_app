@@ -1,6 +1,15 @@
 """Offline venue-scoped table seating prototype; NOT concurrency-safe or persistent."""
 from dataclasses import dataclass
 import unittest
+from threading import RLock
+from functools import wraps
+
+def synchronized(method):
+    @wraps(method)
+    def guarded(self, *args, **kwargs):
+        with self._lock:
+            return method(self, *args, **kwargs)
+    return guarded
 
 @dataclass(frozen=True)
 class PhysicalTable:
@@ -23,15 +32,18 @@ class SeatingSession:
 
 class SeatingRegistry:
     def __init__(self):
+        self._lock = RLock()
         self.tables = {}
         self.sessions = {}
 
+    @synchronized
     def add_table(self, table):
         key = (table.venue_id, table.table_id)
         if key in self.tables:
             raise ValueError("duplicate table")
         self.tables[key] = table
 
+    @synchronized
     def seat(self, venue_id, table_id, session_id, guests):
         table = self.tables.get((venue_id, table_id))
         if not table or not table.active:
@@ -46,6 +58,7 @@ class SeatingRegistry:
         self.sessions[(venue_id, session_id)] = session
         return session
 
+    @synchronized
     def close(self, venue_id, session_id):
         key = (venue_id, session_id)
         s = self.sessions.get(key)
@@ -58,6 +71,18 @@ class Tests(unittest.TestCase):
         self.r = SeatingRegistry()
         self.r.add_table(PhysicalTable("a", "T1", 4))
         self.r.add_table(PhysicalTable("b", "T1", 2))
+
+    def test_concurrent_seating_one_winner(self):
+        from concurrent.futures import ThreadPoolExecutor
+        def attempt(i):
+            try:
+                self.r.seat("a", "T1", f"concurrent-{i}", 2)
+                return True
+            except ValueError:
+                return False
+        with ThreadPoolExecutor(max_workers=12) as executor:
+            outcomes = list(executor.map(attempt, range(40)))
+        self.assertEqual(sum(outcomes), 1)
 
     def test_double_seating_and_close(self):
         self.r.seat("a", "T1", "s1", 4)
