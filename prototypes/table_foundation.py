@@ -1,4 +1,4 @@
-"""Offline venue-scoped table seating prototype; NOT concurrency-safe or persistent."""
+"""Offline venue-scoped table seating prototype; serialized within one process; NOT multi-process safe or persistent."""
 from dataclasses import dataclass
 import unittest
 from threading import RLock
