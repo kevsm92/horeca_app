@@ -32,6 +32,17 @@ CREATE TRIGGER IF NOT EXISTS prevent_capacity_below_active_guests
  BEGIN SELECT RAISE(ABORT, 'active guests exceed capacity') WHERE
  NEW.capacity < COALESCE((SELECT guest_count FROM seating_sessions
  WHERE venue_id=OLD.venue_id AND table_id=OLD.table_id AND status='active'),0); END;
+CREATE TRIGGER IF NOT EXISTS immutable_seating_identity
+ BEFORE UPDATE OF session_id,venue_id,table_id ON seating_sessions
+ WHEN NEW.session_id != OLD.session_id OR NEW.venue_id != OLD.venue_id
+ OR NEW.table_id != OLD.table_id
+ BEGIN SELECT RAISE(ABORT, 'seating identity immutable'); END;
+CREATE TRIGGER IF NOT EXISTS closed_session_immutable
+ BEFORE UPDATE ON seating_sessions WHEN OLD.status='closed'
+ BEGIN SELECT RAISE(ABORT, 'closed seating session immutable'); END;
+CREATE TRIGGER IF NOT EXISTS no_seating_session_delete
+ BEFORE DELETE ON seating_sessions
+ BEGIN SELECT RAISE(ABORT, 'seating sessions cannot be deleted'); END;
 """
 
 def connect(path=":memory:"):
