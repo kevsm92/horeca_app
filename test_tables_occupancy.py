@@ -44,5 +44,35 @@ class OccupancyTests(unittest.TestCase):
                 occupancy_for_venue(self.db,venue)
 
 
+    def test_orphan_active_session_fails_closed(self):
+        self.db.execute("INSERT INTO seating_sessions VALUES ('orphan','a','MISSING',1,'active')")
+        with self.assertRaisesRegex(ValueError, 'missing physical table'):
+            occupancy_for_venue(self.db,'a')
+
+    def test_overcapacity_fails_closed(self):
+        self.db.execute("UPDATE seating_sessions SET guest_count=5 WHERE session_id='new'")
+        with self.assertRaisesRegex(ValueError, 'guest count'):
+            occupancy_for_venue(self.db,'a')
+
+    def test_zero_guests_fails_closed(self):
+        self.db.execute("UPDATE seating_sessions SET guest_count=0 WHERE session_id='new'")
+        with self.assertRaisesRegex(ValueError, 'guest count'):
+            occupancy_for_venue(self.db,'a')
+
+    def test_invalid_capacity_fails_closed(self):
+        self.db.execute("UPDATE physical_tables SET capacity=0 WHERE venue_id='a' AND table_id='T2'")
+        with self.assertRaisesRegex(ValueError, 'capacity'):
+            occupancy_for_venue(self.db,'a')
+
+    def test_other_venue_corruption_does_not_leak(self):
+        self.db.execute("UPDATE seating_sessions SET guest_count=99 WHERE session_id='secret'")
+        self.assertEqual(len(occupancy_for_venue(self.db,'a')), 2)
+
+    def test_duplicate_active_sessions_fails_closed_without_unique_index(self):
+        self.db.execute('DROP INDEX active_unique')
+        self.db.execute("INSERT INTO seating_sessions VALUES ('double','a','T1',1,'active')")
+        with self.assertRaisesRegex(ValueError, 'duplicate'):
+            occupancy_for_venue(self.db,'a')
+
 if __name__ == '__main__':
     unittest.main()
