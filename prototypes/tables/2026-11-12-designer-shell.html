@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>HORECA · Layout studio (fictional)</title>
+<style>
+body{font:15px system-ui;margin:0;background:#f4f5f1;color:#23352b}header{display:flex;gap:1rem;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:1rem;background:white;border-bottom:1px solid #cbd3ca}h1{font-size:1.3rem;margin:0}button{font:inherit;padding:.65rem;border:1px solid #b8c8b9;border-radius:8px;background:white;cursor:pointer}button:focus-visible{outline:3px solid #267ac0}button[aria-pressed=true],button[aria-current=page]{background:#d7eedc;border-color:#39764a}main{display:grid;grid-template-columns:240px minmax(300px,1fr) 210px;min-height:75vh}aside,section.workspace{padding:1rem}aside{background:white;border-right:1px solid #d7ddd5}aside:last-child{border-left:1px solid #d7ddd5}h2{font-size:1rem}.templates{display:grid;grid-template-columns:1fr 1fr;gap:.5rem}.templates button{min-height:60px}.inventory{list-style:none;padding:0}.inventory li{padding:.6rem;border:1px solid #d7ddd5;border-radius:8px;margin:.5rem 0}.inventory button{display:block;margin-top:.4rem;width:100%}.canvas{height:480px;position:relative;overflow:hidden;border:2px solid #b7c5b7;border-radius:10px;background-color:white;background-image:linear-gradient(#e7ede6 1px,transparent 1px),linear-gradient(90deg,#e7ede6 1px,transparent 1px);background-size:25px 25px}.canvas button{position:absolute;width:100px;height:70px;transform:translate(-50%,-50%);background:#d7eedd;border:2px solid #357748}.canvas button[aria-pressed=true]{outline:3px solid #2379c0}.muted{color:#5c6b60}.status{padding:1rem;background:#e9eee8}@media(max-width:850px){main{grid-template-columns:1fr}.canvas{height:380px}}
+</style></head><body>
+<header><h1>HORECA · Floor-plan studio</h1><nav aria-label="Tables modes"><button id="service-tab" aria-current="page">Tables · Service</button> <button id="design-tab">Design layout</button></nav><span>Fictional venue · offline draft</span></header>
+<section id="service"><div class="status"><h2>Tables service</h2><p>Reference shell only. Existing Seat workflow remains separate. Select Design layout to start a draft.</p></div></section>
+<main id="designer" hidden><aside><h2>Start layout</h2><p class="muted">Blank canvas or optional venue guide. Templates never create physical tables.</p><div id="templates" class="templates"></div><h2>Physical inventory</h2><p id="counts" aria-live="polite"></p><ul id="inventory" class="inventory"></ul></aside><section class="workspace"><h2 id="room-name">Blank canvas</h2><p id="template-note" class="muted"></p><div id="canvas" class="canvas" role="group" aria-label="Draft floor plan"></div><p class="muted">Illustrative coordinates only. Dragging, rotation, persistence and publishing are future milestones.</p></section><aside><h2>Selected table</h2><p id="details" aria-live="polite">No table selected.</p><p class="muted">Visual dimensions cannot change physical seat capacity.</p></aside></main>
+<div id="status" class="status" role="status" aria-live="polite">Service mode · synthetic data only</div>
+<script>
+'use strict';
+const tables=Object.freeze([{id:'T01',seats:2,shape:'Square'},{id:'T02',seats:4,shape:'Round'},{id:'T03',seats:6,shape:'Rectangle'},{id:'T04',seats:4,shape:'Round'}]);
+const templates=['Blank','Restaurant','Café','Bar','Terrace','Banquet'];
+let placed=[],selected=null,template='Blank';
+const el=id=>document.getElementById(id);
+function announce(s){el('status').textContent=s;}
+function render(){
+ el('room-name').textContent=template==='Blank'?'Blank canvas':template+' room guide';
+ el('template-note').textContent=template==='Blank'?'Empty room: place inventory tables below.':template+' guide selected. No tables were created.';
+ el('counts').textContent=placed.length+' placed / '+tables.length+' physical tables';
+ const list=el('inventory');list.replaceChildren();
+ for(const t of tables){const li=document.createElement('li');li.append(document.createTextNode(t.id+' · '+t.shape+' · '+t.seats+' seats'));const b=document.createElement('button');const used=placed.some(p=>p.id===t.id);b.textContent=used?'Placed':'Place table';b.disabled=used;b.addEventListener('click',()=>place(t.id));li.append(b);list.append(li);}
+ const canvas=el('canvas');canvas.replaceChildren();
+ for(const p of placed){const t=tables.find(t=>t.id===p.id);const b=document.createElement('button');b.style.left=p.x+'%';b.style.top=p.y+'%';b.textContent=t.id+' · '+t.seats+' seats';b.setAttribute('aria-pressed',String(selected===p.id));b.setAttribute('aria-label',t.id+', '+t.seats+' physical seats');b.addEventListener('click',()=>{selected=p.id;render();});canvas.append(b);}
+ const t=tables.find(t=>t.id===selected);el('details').textContent=t?t.id+' · '+t.shape+' · '+t.seats+' physical seats · fictional inventory':'No table selected.';
+ for(const b of el('templates').querySelectorAll('button'))b.setAttribute('aria-pressed',String(b.dataset.template===template));
+}
+function place(id){if(!tables.some(t=>t.id===id)||placed.some(p=>p.id===id))return false;const n=placed.length;placed.push({id,x:18+(n%3)*30,y:22+Math.floor(n/3)*26});selected=id;render();announce('Placed '+id+' from fictional inventory.');return true;}
+function chooseTemplate(name){if(!templates.includes(name))return false;if(placed.length&&!window.confirm('Start a new draft and discard current placements?'))return false;template=name;placed=[];selected=null;render();announce(name+' draft started; no physical tables created.');return true;}
+for(const name of templates){const b=document.createElement('button');b.dataset.template=name;b.textContent=name==='Blank'?'＋ Blank canvas':name;b.addEventListener('click',()=>chooseTemplate(name));el('templates').append(b);}
+function mode(design){el('designer').hidden=!design;el('service').hidden=design;el('design-tab').toggleAttribute('aria-current',design);el('service-tab').toggleAttribute('aria-current',!design);if(design)render();announce(design?'Designer draft · no backend persistence':'Service mode · synthetic data only');}
+el('service-tab').addEventListener('click',()=>mode(false));el('design-tab').addEventListener('click',()=>mode(true));render();
+</script></body></html>
