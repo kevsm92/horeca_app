@@ -97,7 +97,7 @@ class ProjectionTests(unittest.TestCase):
 
     def test_double_seating(self):
         with self.assertRaises(IntegrityError):
-            project_occupancy("v1", [self.table, self.session,], [self.session, SeatingSession("s2", "v1", "t1", 1, True)])
+            project_occupancy("v1", [self.table], [self.session, SeatingSession("s2", "v1", "t1", 1, True)])
 
     def test_orphan(self):
         with self.assertRaises(IntegrityError):
