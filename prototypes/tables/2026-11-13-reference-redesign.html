@@ -353,10 +353,10 @@ function onKey(e){
  const node=room.querySelector('[data-table="'+selected+'"]');if(node)node.focus();
 }
 function startDrag(e){
- if(e.button!==0)return;
+ if(e.button!==0||drag)return;
  selected=e.currentTarget.dataset.table;
  const r=room.getBoundingClientRect(),p=positions[selected];if(!p)return;
- drag={id:selected,pointer:e.pointerId,revision,startX:e.clientX,startY:e.clientY,x:p.x,y:p.y,width:r.width,height:r.height};
+ drag={id:selected,node:e.currentTarget,pointer:e.pointerId,revision,startX:e.clientX,startY:e.clientY,x:p.x,y:p.y,width:r.width,height:r.height};
  e.currentTarget.setPointerCapture(e.pointerId);e.currentTarget.addEventListener('pointermove',dragMove);
  e.currentTarget.addEventListener('pointerup',endDrag,{once:true});
  e.currentTarget.addEventListener('pointercancel',cancelDrag,{once:true});switchTab('properties');render();
@@ -366,9 +366,17 @@ function dragMove(e){
  const x=Math.max(12,Math.min(88,drag.x+(e.clientX-drag.startX)/drag.width*100)),y=Math.max(12,Math.min(88,drag.y+(e.clientY-drag.startY)/drag.height*100));
  positions[drag.id]={x:Math.round(x*100)/100,y:Math.round(y*100)/100};render();
 }
+function cleanupDrag(d){
+ if(!d)return;
+ const node=d.node;
+ node.removeEventListener('pointermove',dragMove);
+ node.removeEventListener('pointerup',endDrag);
+ node.removeEventListener('pointercancel',cancelDrag);
+ if(node.hasPointerCapture(d.pointer))node.releasePointerCapture(d.pointer);
+}
 function endDrag(e){
  if(!drag||drag.pointer!==e.pointerId)return;
- const d=drag;drag=null;e.currentTarget.removeEventListener('pointermove',dragMove);
+ const d=drag;drag=null;cleanupDrag(d);
  if(revision!==d.revision){render();announce('Drag cancelled: the layout revision changed.');return;}
  const p=positions[d.id];if(p&&(p.x!==d.x||p.y!==d.y)){
   const expected=revision;
@@ -378,8 +386,7 @@ function endDrag(e){
 }
 function cancelDrag(e){
  if(!drag||drag.pointer!==e.pointerId)return;
- const d=drag;drag=null;
- e.currentTarget.removeEventListener('pointermove',dragMove);
+ const d=drag;drag=null;cleanupDrag(d);
  // A storage event may already have loaded a newer revision: never restore stale coordinates.
  if(revision===d.revision)positions[d.id]={x:d.x,y:d.y};
  render();
@@ -400,7 +407,7 @@ room.addEventListener('drop',e=>{
 });
 document.addEventListener('dragend',()=>room.classList.remove('inventory-drop'));
 $('remove-table').addEventListener('click',()=>{if(selected)removeFromLayout(selected);});
-$('venue').addEventListener('change',e=>{venue=e.target.value;selected='T2';read();switchTab('properties');render();announce('Switched venue to '+venue+'.');});
+$('venue').addEventListener('change',e=>{if(drag){const pending=drag;drag=null;cleanupDrag(pending);}venue=e.target.value;selected='T2';read();switchTab('properties');render();announce('Switched venue to '+venue+'.');});
 $('reset').addEventListener('click',()=>{
  if(!confirm('Reset this venue to all five original table placements?'))return;
  const old=clone(positions),expected=revision;positions=defaults();selected='T2';
@@ -418,7 +425,7 @@ $('tab-revisions').addEventListener('click',()=>switchTab('revisions'));
 $('tab-furniture').addEventListener('click',()=>switchTab('furniture'));
 window.addEventListener('storage',e=>{if(e.key===key()){
  // Invalidate the in-progress pointer gesture before reading the other tab's saved state.
- if(drag){const node=room.querySelector('[data-table="'+drag.id+'"]');if(node)node.removeEventListener('pointermove',dragMove);drag=null;}
+ if(drag){const pending=drag;drag=null;cleanupDrag(pending);}
  read();render();announce('Layout updated from another browser tab; pending drag cancelled.');
 }});
 read();switchTab('properties');render();announce('Select a table or open Furniture to place an available one.');
