@@ -359,7 +359,8 @@ function startDrag(e){
  drag={id:selected,node:e.currentTarget,pointer:e.pointerId,revision,startX:e.clientX,startY:e.clientY,x:p.x,y:p.y,width:r.width,height:r.height};
  e.currentTarget.setPointerCapture(e.pointerId);e.currentTarget.addEventListener('pointermove',dragMove);
  e.currentTarget.addEventListener('pointerup',endDrag,{once:true});
- e.currentTarget.addEventListener('pointercancel',cancelDrag,{once:true});switchTab('properties');render();
+ e.currentTarget.addEventListener('pointercancel',cancelDrag,{once:true});
+ e.currentTarget.addEventListener('lostpointercapture',lostDragCapture,{once:true});switchTab('properties');render();
 }
 function dragMove(e){
  if(!drag||drag.pointer!==e.pointerId)return;
@@ -372,6 +373,7 @@ function cleanupDrag(d){
  node.removeEventListener('pointermove',dragMove);
  node.removeEventListener('pointerup',endDrag);
  node.removeEventListener('pointercancel',cancelDrag);
+ node.removeEventListener('lostpointercapture',lostDragCapture);
  if(node.hasPointerCapture(d.pointer))node.releasePointerCapture(d.pointer);
 }
 function endDrag(e){
@@ -383,6 +385,10 @@ function endDrag(e){
   if(!save(expected,'Dragged '+d.id)&&revision===expected)positions[d.id]={x:d.x,y:d.y};
  }
  render();
+}
+function lostDragCapture(e){
+ // Lost capture without pointerup/cancel means the gesture cannot safely commit.
+ cancelDrag(e);
 }
 function cancelDrag(e){
  if(!drag||drag.pointer!==e.pointerId)return;
