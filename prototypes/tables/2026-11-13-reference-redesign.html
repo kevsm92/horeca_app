@@ -356,7 +356,7 @@ function startDrag(e){
  if(e.button!==0)return;
  selected=e.currentTarget.dataset.table;
  const r=room.getBoundingClientRect(),p=positions[selected];if(!p)return;
- drag={id:selected,pointer:e.pointerId,startX:e.clientX,startY:e.clientY,x:p.x,y:p.y,width:r.width,height:r.height};
+ drag={id:selected,pointer:e.pointerId,revision,startX:e.clientX,startY:e.clientY,x:p.x,y:p.y,width:r.width,height:r.height};
  e.currentTarget.setPointerCapture(e.pointerId);e.currentTarget.addEventListener('pointermove',dragMove);
  e.currentTarget.addEventListener('pointerup',endDrag,{once:true});
  e.currentTarget.addEventListener('pointercancel',cancelDrag,{once:true});switchTab('properties');render();
@@ -369,6 +369,7 @@ function dragMove(e){
 function endDrag(e){
  if(!drag||drag.pointer!==e.pointerId)return;
  const d=drag;drag=null;e.currentTarget.removeEventListener('pointermove',dragMove);
+ if(revision!==d.revision){render();announce('Drag cancelled: the layout revision changed.');return;}
  const p=positions[d.id];if(p&&(p.x!==d.x||p.y!==d.y)){
   const expected=revision;
   if(!save(expected,'Dragged '+d.id)&&revision===expected)positions[d.id]={x:d.x,y:d.y};
@@ -376,8 +377,12 @@ function endDrag(e){
  render();
 }
 function cancelDrag(e){
- if(!drag)return;positions[drag.id]={x:drag.x,y:drag.y};drag=null;
- e.currentTarget.removeEventListener('pointermove',dragMove);render();
+ if(!drag||drag.pointer!==e.pointerId)return;
+ const d=drag;drag=null;
+ e.currentTarget.removeEventListener('pointermove',dragMove);
+ // A storage event may already have loaded a newer revision: never restore stale coordinates.
+ if(revision===d.revision)positions[d.id]={x:d.x,y:d.y};
+ render();
 }
 for(const b of document.querySelectorAll('[data-step]'))b.addEventListener('click',()=>{
  if(!selected||!positions[selected]){announce('Select a table first.');return;}
@@ -411,6 +416,10 @@ $('show-furniture').addEventListener('click',()=>switchTab('furniture'));
 $('tab-properties').addEventListener('click',()=>switchTab('properties'));
 $('tab-revisions').addEventListener('click',()=>switchTab('revisions'));
 $('tab-furniture').addEventListener('click',()=>switchTab('furniture'));
-window.addEventListener('storage',e=>{if(e.key===key()){read();render();announce('Layout updated from another browser tab.');}});
+window.addEventListener('storage',e=>{if(e.key===key()){
+ // Invalidate the in-progress pointer gesture before reading the other tab's saved state.
+ if(drag){const node=room.querySelector('[data-table="'+drag.id+'"]');if(node)node.removeEventListener('pointermove',dragMove);drag=null;}
+ read();render();announce('Layout updated from another browser tab; pending drag cancelled.');
+}});
 read();switchTab('properties');render();announce('Select a table or open Furniture to place an available one.');
 </script></body></html>
