@@ -2,7 +2,7 @@
 import sqlite3
 import unittest
 from tables_foundation import connect
-from tables_inventory import register_physical_table
+from tables_inventory import register_physical_table, list_venue_physical_tables
 
 
 class TableRegistrationTests(unittest.TestCase):
@@ -18,6 +18,26 @@ class TableRegistrationTests(unittest.TestCase):
         self.assertEqual(self.db.execute(
             'SELECT venue_id,capacity FROM physical_tables ORDER BY venue_id'
         ).fetchall(), [('v1', 2), ('v2', 6)])
+
+    def test_inventory_read_is_venue_scoped_and_does_not_modify_it(self):
+        register_physical_table(self.db, 'v1', 'T2', 4)
+        register_physical_table(self.db, 'v1', 'T1', 2)
+        register_physical_table(self.db, 'v2', 'T1', 6)
+        self.assertEqual(list_venue_physical_tables(self.db, 'v1'), [
+            {'id': 'T1', 'seats': 2}, {'id': 'T2', 'seats': 4}
+        ])
+        self.assertEqual(list_venue_physical_tables(self.db, 'v2'), [
+            {'id': 'T1', 'seats': 6}
+        ])
+        self.assertEqual(list_venue_physical_tables(self.db, 'missing'), [])
+        self.assertEqual(self.db.execute(
+            'SELECT COUNT(*) FROM physical_tables'
+        ).fetchone()[0], 3)
+
+    def test_inventory_read_rejects_invalid_venue(self):
+        for venue in (None, '', '  ', ' v1', 'v1 ', 123):
+            with self.subTest(venue=venue), self.assertRaises(ValueError):
+                list_venue_physical_tables(self.db, venue)
 
     def test_duplicate_registration_cannot_overwrite_capacity(self):
         register_physical_table(self.db, 'v1', 'T1', 4)
