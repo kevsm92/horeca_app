@@ -81,6 +81,40 @@ button{font-weight:680}
 @media(max-width:750px){.brand{font-size:20px}.page-heading{min-width:180px}.editor-grid{grid-template-columns:1fr}.venue-group{width:100%}.sidebar{display:block}.stats{grid-template-columns:1fr}.room{height:390px}}
 @media(max-width:580px){.topbar{gap:12px}.page-heading{order:3;flex-basis:100%}.brand{padding-right:12px}.editor-head{padding:14px}.editor-title{min-width:0}.editor-symbol{width:40px;height:40px}.room{height:340px}.sidebar .controls{justify-content:start}}
 
+
+/* Venue operator view: no internal development dashboard. */
+.shell{margin-top:18px}.topbar{padding-block:13px}.page-heading h1{font-size:23px}.header-context{display:inline-flex;align-items:center;gap:7px;color:#5947ca;font-size:13px;font-weight:800;background:#eeeaff;padding:9px 12px;border-radius:10px}
+.editor-head{padding:19px 22px}.room{background-color:#fffefa}
+.room.grid-on{background-image:linear-gradient(#cdd4e480 1px,transparent 1px),linear-gradient(90deg,#cdd4e480 1px,transparent 1px)}
+.floor-doors{position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none}
+.floor-label{position:absolute;z-index:1;text-transform:uppercase;font-size:10px;font-weight:850;letter-spacing:.09em;color:#66738a;pointer-events:none}.floor-label-entry{left:51%;bottom:6%;transform:translateX(-50%)}
+.fixture{position:absolute;z-index:1;display:flex!important;margin:0!important;box-shadow:0 3px 10px #635d4a1f;border:2px solid #9e9d91;background:#e9e5da;border-radius:8px;color:#403e41;text-align:center;align-items:center;justify-content:center;touch-action:auto}
+.fixture:hover{background:#e0ded5}.fixture:focus-visible{outline:3px solid #5946e6}
+.fixture.selected{outline:3px solid #6556ec;outline-offset:3px}
+.fixture-kitchen{left:2%;top:36%;width:22%;height:24%;flex-direction:column;gap:9px;padding:8px!important;background:#ece8df}
+.fixture-title{display:flex;align-items:center;gap:5px;font-size:clamp(10px,1.1vw,14px);font-weight:900}
+.fixture-title .icon{width:18px;height:18px}
+.appliances{display:flex;gap:6px;width:100%;justify-content:space-around}
+.appliance{display:flex;align-items:center;flex-direction:column;gap:3px;min-width:0;color:#596274}
+.appliance .icon{width:24px;height:24px;background:#f8f9fb;border:1px solid #b5bac6;padding:3px;border-radius:5px}
+.appliance small{font-size:9px;font-weight:750}
+.fixture-desk{left:59%;top:84%;width:15%;height:10%;font-size:11px;font-weight:850;display:flex;flex-direction:column;gap:2px;padding:3px!important}
+.fixture-desk .icon{width:23px;height:23px}
+.side-tabs{display:flex;gap:5px;border-bottom:1px solid #e1e4f1;padding-bottom:10px;margin-bottom:16px}
+.side-tabs button{padding:8px 9px;font-size:12px;font-weight:820;flex:1;border:0;border-radius:7px;color:#657089}
+.side-tabs button[aria-selected=true]{background:#e9e6ff;color:#4e3ac5}
+.properties [hidden]{display:none!important}
+.properties h3{font-size:15px}.properties .hint{font-size:11px;color:#66718b;line-height:1.6;margin-top:13px}
+.properties dl div{padding:10px 0}.properties dd{white-space:normal;line-height:1.35}
+.fixture-note{font-size:12px;line-height:1.55;color:#58647a}
+.revision-list{display:grid;gap:8px;margin-top:16px;max-height:365px;overflow-y:auto}
+.revision-card{border:1px solid #e1e4ef;background:#fafaff;border-radius:9px;padding:10px;display:grid;gap:4px}
+.revision-card strong{font-size:13px}.revision-card small{font-size:11px;color:#6a7188}.revision-card button{font-size:11px;font-weight:800;padding:5px 8px;justify-self:start;margin-top:4px}
+.revision-card.current{border-color:#a89df6;background:#f4f2ff}
+.revision-card .revision-number{color:#5846c7}
+.sidebar button.active{background:#e7e5ff!important;color:#4035b5}
+@media(max-width:750px){.room{height:440px}.fixture-kitchen{left:1%;width:24%;height:22%}.fixture-title{font-size:11px}.fixture-title .icon{width:15px;height:15px}.appliances{gap:1px}.appliance .icon{width:20px;height:20px}.appliance small{font-size:8px}.fixture-desk{font-size:9px}.fixture-desk .icon{width:18px;height:18px}.floor-label-entry{font-size:8px}}
+@media(max-width:580px){.room{height:370px}.header-context{display:none}.sidebar{display:block}.editor-grid{gap:8px}}
 </style></head><body>
 <svg class="svg-sprite" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
 <symbol id="i-table" viewBox="0 0 24 24"><path d="M3 8h18M5 8l1-4h12l1 4M6 8l1 12m11-12-1 12M4 12h16"/></symbol>
@@ -101,50 +135,236 @@ button{font-weight:680}
 <symbol id="i-arrow-right" viewBox="0 0 24 24"><path d="M4 12h16m-6-6 6 6-6 6"/></symbol>
 <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4m10-4v4M3 10h18"/></symbol>
 <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 10v6m0-9v.5"/></symbol>
+<symbol id="i-kitchen" viewBox="0 0 24 24"><path d="M4 3v18m16-18v18M4 7h16M7 7v10h10V7M10 11h4m-2-2v4"/></symbol>
+<symbol id="i-stove" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8" cy="8" r="2"/><circle cx="16" cy="8" r="2"/><circle cx="8" cy="16" r="2"/><circle cx="16" cy="16" r="2"/></symbol>
+<symbol id="i-sink" viewBox="0 0 24 24"><path d="M4 9h16v8a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4V9Zm8 12v-3M9 6V4a3 3 0 0 1 6 0v2"/></symbol>
+<symbol id="i-counter" viewBox="0 0 24 24"><path d="M2 8h20v4H2zM5 12v9m14-9v9M5 17h14"/></symbol>
+<symbol id="i-desk" viewBox="0 0 24 24"><path d="M3 10h18v4H3zM5 14v7m14-7v7M7 10V5h10v5"/></symbol>
 </svg>
-<header class="topbar"><div class="brand"><span class="brand-mark"><svg class="icon"><use href="#i-store"/></svg></span><strong>HORECA</strong></div><div class="page-heading"><h1>Development Progress Dashboard</h1><p class="sub">Restaurant Operations Platform <span class="bullet">·</span> Synthetic Data <span class="bullet">·</span> No Real Customer Information</p></div><span class="pill">Dev: In Progress</span></header>
-<div class="shell"><div class="stats">
-<div class="stat progress-stat"><span class="stat-icon green-icon"><svg class="icon"><use href="#i-check"/></svg></span><div class="stat-content"><span class="stat-title">Development Progress</span><strong>Day 4 / 365</strong><div class="progress-track"><span style="width:1.1%"></span></div><span class="progress-number">1.1%</span></div></div>
-<div class="stat"><span class="stat-icon"><svg class="icon"><use href="#i-table"/></svg></span><div class="stat-content"><span class="stat-title">Current Focus (13 Nov 2026)</span><strong>Floor-plan editing</strong><span class="stat-detail">Table positions, movement, revision checks</span></div></div>
-<div class="stat"><span class="stat-icon"><svg class="icon"><use href="#i-layers"/></svg></span><div class="stat-content"><span class="stat-title">Frontend Status</span><strong>Interactive prototype</strong><span class="stat-detail">Local only · not deployed</span></div></div>
-</div>
-<article class="editor"><div class="editor-head"><div class="editor-title"><span class="editor-symbol"><svg class="icon"><use href="#i-table"/></svg></span><div><h2>Restaurant Floor Plan Editor</h2><p class="sub">Manage table layout, move with mouse or keyboard, and save local draft coordinates.</p></div></div><div class="venue-group"><label for="venue">Venue</label><span class="venue-picker"><svg class="icon" aria-hidden="true"><use href="#i-store"/></svg><select id="venue"><option value="VEN-001">Brussels Bistro (VEN-001)</option><option value="VEN-002">Demo Café (VEN-002)</option></select></span><span class="venue-chip"><svg class="icon"><use href="#i-shield"/></svg>Venue isolated</span></div></div>
-<div class="editor-grid"><aside class="sidebar"><h3>Tools</h3><button class="active" aria-pressed="true" type="button"><svg class="icon"><use href="#i-move"/></svg>Edit Layout</button><button id="reset" type="button"><svg class="icon"><use href="#i-reset"/></svg>Reset Layout</button><h3>Move Controls</h3><div class="controls"><span class="empty"></span><button data-step="up" aria-label="Move up"><svg class="icon"><use href="#i-arrow-up"/></svg></button><span class="empty"></span><button data-step="left" aria-label="Move left"><svg class="icon"><use href="#i-arrow-left"/></svg></button><button data-step="down" aria-label="Move down"><svg class="icon"><use href="#i-arrow-down"/></svg></button><button data-step="right" aria-label="Move right"><svg class="icon"><use href="#i-arrow-right"/></svg></button></div><p class="hint"><b>Arrow keys</b> move 1%. <b>Shift + arrow</b> moves 0.25%. Positions are bounded to the room.</p><div class="toggles"><label>Show boundaries <input id="bounds" type="checkbox" checked></label><label>Show grid <input id="grid" type="checkbox" checked></label></div></aside>
-<section class="workspace"><div id="room" class="room grid-on bounds-on" role="group" aria-label="Editable floor plan with five physical tables"><div class="guide"></div><div class="center-guide"></div><div class="horizontal-guide"></div><span class="plant a" aria-hidden="true">🪴</span><span class="plant b" aria-hidden="true">🪴</span><span class="plant c" aria-hidden="true">🪴</span></div><p id="status" role="status" aria-live="polite"></p></section>
-<aside class="properties"><h3>Selected Table</h3><dl><div><dt><svg class="icon"><use href="#i-table"/></svg>Table ID</dt><dd id="p-id">T2</dd></div><div><dt><svg class="icon"><use href="#i-users"/></svg>Capacity (seats)</dt><dd id="p-seats">4 seats</dd></div><div><dt><svg class="icon"><use href="#i-position"/></svg>Position (x, y)</dt><dd id="p-pos">50%, 40%</dd></div><div><dt><svg class="icon"><use href="#i-dimensions"/></svg>Dimensions (visual)</dt><dd id="p-dim">2.20 × 1.20 m</dd></div><div><dt><svg class="icon"><use href="#i-layers"/></svg>Revision</dt><dd id="p-rev">v0</dd></div><div><dt><svg class="icon"><use href="#i-clock"/></svg>Last saved</dt><dd id="p-saved">Not yet</dd></div></dl><div id="save-badge" class="saved"><svg class="icon"><use href="#i-info"/></svg>Demo only · not yet saved</div><p class="hint">Physical seat inventory is fixed. Layout edits cannot add seats or seat real guests.</p></aside></div>
-<div class="footer"><span><svg class="icon"><use href="#i-info"/></svg>Local draft only</span><span><svg class="icon"><use href="#i-database"/></svg>Browser localStorage (if available)</span><span><svg class="icon"><use href="#i-layers"/></svg><b id="footer-rev">Revision v0</b></span><span><svg class="icon"><use href="#i-store"/></svg><b id="footer-venue">VEN-001</b></span><span>No live service, payments or guest data</span></div></article></div>
+<header class="topbar"><div class="brand"><span class="brand-mark"><svg class="icon" aria-hidden="true"><use href="#i-store"/></svg></span><strong>HORECA</strong></div><div class="page-heading"><h1>Floor Plan</h1><p class="sub">Restaurant layout <span class="bullet">·</span> Tables, entrances and service areas</p></div><span class="header-context"><svg class="icon" aria-hidden="true"><use href="#i-layers"/></svg> Layout editor</span></header>
+<div class="shell"><article class="editor"><div class="editor-head"><div class="editor-title"><span class="editor-symbol"><svg class="icon"><use href="#i-table"/></svg></span><div><h2>Restaurant Floor Plan Editor</h2><p class="sub">Arrange tables, inspect venue fixtures and review saved layout changes.</p></div></div><div class="venue-group"><label for="venue">Venue</label><span class="venue-picker"><svg class="icon" aria-hidden="true"><use href="#i-store"/></svg><select id="venue"><option value="VEN-001">Brussels Bistro (VEN-001)</option><option value="VEN-002">Demo Café (VEN-002)</option></select></span><span class="venue-chip"><svg class="icon"><use href="#i-shield"/></svg>Venue isolated</span></div></div>
+<div class="editor-grid"><aside class="sidebar"><h3>Tools</h3><button id="show-layout" class="active" aria-pressed="true" type="button"><svg class="icon"><use href="#i-move"/></svg>Edit Layout</button><button id="show-properties" aria-pressed="false" type="button"><svg class="icon"><use href="#i-table"/></svg>Table Properties</button><button id="show-revisions" aria-pressed="false" type="button"><svg class="icon"><use href="#i-clock"/></svg>Layout Revisions</button><button id="reset" type="button"><svg class="icon"><use href="#i-reset"/></svg>Reset Layout</button><h3>Move Controls</h3><div class="controls"><span class="empty"></span><button data-step="up" aria-label="Move up"><svg class="icon"><use href="#i-arrow-up"/></svg></button><span class="empty"></span><button data-step="left" aria-label="Move left"><svg class="icon"><use href="#i-arrow-left"/></svg></button><button data-step="down" aria-label="Move down"><svg class="icon"><use href="#i-arrow-down"/></svg></button><button data-step="right" aria-label="Move right"><svg class="icon"><use href="#i-arrow-right"/></svg></button></div><p class="hint"><b>Arrow keys</b> move 1%. <b>Shift + arrow</b> moves 0.25%. Positions are bounded to the room.</p><div class="toggles"><label>Show boundaries <input id="bounds" type="checkbox" checked></label><label>Show grid <input id="grid" type="checkbox" checked></label></div></aside>
+<section class="workspace"><div id="room" class="room grid-on bounds-on" role="group" aria-label="Editable floor plan with five physical tables"><div class="guide"></div><div class="center-guide"></div><div class="horizontal-guide"></div><span class="plant a" aria-hidden="true">🪴</span><span class="plant b" aria-hidden="true">🪴</span><span class="plant c" aria-hidden="true">🪴</span><svg class="floor-doors" viewBox="0 0 1000 700" preserveAspectRatio="none" aria-hidden="true">
+  <g fill="none" stroke="#778396" stroke-width="4" vector-effect="non-scaling-stroke"><path d="M440 0v108M440 108A108 108 0 0 0 548 0" /><path d="M438 700V590A110 110 0 0 1 548 700"/><path d="M562 700V590A110 110 0 0 0 452 700"/></g>
+  <g font-size="18" font-weight="800" fill="#5e677b" text-anchor="middle"><text x="500" y="132">STAFF DOOR</text><text x="500" y="555">MAIN ENTRANCE</text></g>
+</svg>
+<button type="button" class="fixture fixture-kitchen" data-fixture="kitchen" aria-label="Select fixed kitchen zone">
+  <span class="fixture-title"><svg class="icon"><use href="#i-kitchen"/></svg> Kitchen</span>
+  <span class="appliances"><span class="appliance" title="Cooking range"><svg class="icon"><use href="#i-stove"/></svg><small>Range</small></span><span class="appliance" title="Sink"><svg class="icon"><use href="#i-sink"/></svg><small>Sink</small></span><span class="appliance" title="Preparation worktop"><svg class="icon"><use href="#i-counter"/></svg><small>Prep</small></span></span>
+</button>
+<button type="button" class="fixture fixture-desk" data-fixture="desk" aria-label="Select fixed reception desk"><svg class="icon"><use href="#i-desk"/></svg><span>Reception</span></button>
+<span class="floor-label floor-label-entry">Entrance</span></div><p id="status" role="status" aria-live="polite"></p></section>
+<aside class="properties" aria-label="Layout inspector">
+  <div class="side-tabs" role="tablist" aria-label="Inspector tabs"><button id="tab-properties" role="tab" aria-selected="true" aria-controls="property-view" type="button">Properties</button><button id="tab-revisions" role="tab" aria-selected="false" aria-controls="revision-view" type="button">Layout Revisions</button></div>
+  <div id="property-view" role="tabpanel" aria-labelledby="tab-properties">
+    <div id="table-properties"><h3>Selected Table</h3><dl>
+    <div><dt><svg class="icon"><use href="#i-table"/></svg>Table ID</dt><dd id="p-id">T2</dd></div>
+    <div><dt><svg class="icon"><use href="#i-users"/></svg>Capacity</dt><dd id="p-seats">4 seats</dd></div>
+    <div><dt><svg class="icon"><use href="#i-position"/></svg>Position (x, y)</dt><dd id="p-pos">50%, 43%</dd></div>
+    <div><dt><svg class="icon"><use href="#i-dimensions"/></svg>Dimensions</dt><dd id="p-dim">2.20 × 1.20 m</dd></div>
+    <div><dt><svg class="icon"><use href="#i-layers"/></svg>Revision</dt><dd id="p-rev">v0</dd></div>
+    <div><dt><svg class="icon"><use href="#i-clock"/></svg>Last saved</dt><dd id="p-saved">Not yet</dd></div></dl>
+    </div>
+    <div id="fixture-properties" hidden><h3>Selected Venue Fixture</h3><dl>
+    <div><dt><svg class="icon"><use href="#i-desk"/></svg>Fixture</dt><dd id="f-name">Kitchen</dd></div>
+    <div><dt><svg class="icon"><use href="#i-position"/></svg>Location</dt><dd id="f-location">West wall</dd></div>
+    <div><dt><svg class="icon"><use href="#i-layers"/></svg>Type</dt><dd id="f-kind">Fixed installation</dd></div></dl><p class="fixture-note" id="f-description"></p><p class="hint">Doors and fixtures are fixed reference elements; table positions can be edited.</p></div>
+    <div id="save-badge" class="saved warn"><svg class="icon"><use href="#i-info"/></svg>Browser draft · not yet saved</div>
+    <p class="hint">Table capacities are fixed. Edits here do not change seating or live service data.</p>
+  </div>
+  <div id="revision-view" role="tabpanel" aria-labelledby="tab-revisions" hidden>
+    <h3>Layout Revision History</h3><p class="hint">Snapshots saved in this browser for the selected venue. Restore creates a new revision; it does not delete history. No server sync.</p>
+    <div id="revision-list" class="revision-list"></div>
+  </div>
+</aside></div>
+<div class="footer"><span><svg class="icon"><use href="#i-info"/></svg>Local draft only</span><span><svg class="icon"><use href="#i-database"/></svg>Browser localStorage (if available)</span><span><svg class="icon"><use href="#i-layers"/></svg><b id="footer-rev">Revision v0</b></span><span><svg class="icon"><use href="#i-store"/></svg><b id="footer-venue">VEN-001</b></span><span>Venue fixtures are illustrative · No server sync</span></div></article></div>
 <script>
 'use strict';
+// Offline operator-facing floor-plan prototype. Coordinates and revision snapshots
+// are browser-local, venue-scoped and never represented as database persistence.
 const physical=Object.freeze([{id:'T1',seats:2,shape:'round',x:18,y:20},{id:'T2',seats:4,shape:'large',x:50,y:43},{id:'T3',seats:6,shape:'large',x:79,y:21},{id:'T4',seats:4,shape:'large',x:23,y:77},{id:'T5',seats:4,shape:'round',x:78,y:78}]);
-const $=id=>document.getElementById(id);const room=$('room');let venue='VEN-001',selected='T2',revision=0,savedAt='',positions={},drag=null;
+const fixtures=Object.freeze({
+ kitchen:{name:'Kitchen',location:'West wall · cooking and prep zone',kind:'Fixed service area',description:'Range, sink and preparation counter shown as reference fixtures.'},
+ desk:{name:'Reception desk',location:'Near main entrance',kind:'Fixed reception furniture',description:'Guest welcome and host station near the entrance.'}
+});
+const $=id=>document.getElementById(id);
+const room=$('room'), arrows={ArrowUp:[0,-1],ArrowDown:[0,1],ArrowLeft:[-1,0],ArrowRight:[1,0]};
+let venue='VEN-001',selected='T2',selectedFixture=null,revision=0,savedAt='',positions={},history=[],drag=null,activeTab='properties';
 const key=()=> 'horeca-floor-design-v2:'+venue;
-function defaults(){return Object.fromEntries(physical.map(t=>[t.id,{x:t.x,y:t.y}]));}
-function read(){positions=defaults();revision=0;savedAt='';try{const raw=localStorage.getItem(key());if(!raw)return;const d=JSON.parse(raw);if(!d||!Number.isSafeInteger(d.revision)||d.revision<0||!d.positions)return;for(const t of physical){const p=d.positions[t.id];if(!p||!Number.isFinite(p.x)||!Number.isFinite(p.y)||p.x<12||p.x>88||p.y<12||p.y>88)return;}positions=Object.fromEntries(physical.map(t=>[t.id,{x:d.positions[t.id].x,y:d.positions[t.id].y}]));revision=d.revision;savedAt=typeof d.savedAt==='string'?d.savedAt:'';}catch(e){announce('Storage unavailable; using temporary draft.');}}
-function announce(s){$('status').textContent=s;}
-function renderSaveBadge(message, isWarning=false) {
-  const badge=$('save-badge');
-  badge.className=isWarning?'saved warn':'saved';
-  const symbol=document.createElementNS('http://www.w3.org/2000/svg','svg');
-  symbol.setAttribute('class','icon');
-  symbol.setAttribute('aria-hidden','true');
-  const use=document.createElementNS('http://www.w3.org/2000/svg','use');
-  use.setAttribute('href',isWarning?'#i-info':'#i-check');
-  symbol.append(use);
-  badge.replaceChildren(symbol,document.createTextNode(message));
+const defaults=()=>Object.fromEntries(physical.map(t=>[t.id,{x:t.x,y:t.y}]));
+const clone=p=>Object.fromEntries(physical.map(t=>[t.id,{x:p[t.id].x,y:p[t.id].y}]));
+function validPositions(p){
+ return !!p&&physical.every(t=>{const v=p[t.id];return v&&Number.isFinite(v.x)&&Number.isFinite(v.y)&&v.x>=12&&v.x<=88&&v.y>=12&&v.y<=88;});
 }
-function save(expected){try{const raw=localStorage.getItem(key());const latest=raw?JSON.parse(raw):null;const current=latest&&Number.isSafeInteger(latest.revision)?latest.revision:0;if(current!==expected){read();render();announce('Conflict: another tab changed this layout. Reloaded latest saved revision.');return false;}const nextRevision=expected+1,nextSavedAt=new Date().toLocaleString();localStorage.setItem(key(),JSON.stringify({revision:nextRevision,savedAt:nextSavedAt,positions}));revision=nextRevision;savedAt=nextSavedAt;renderSaveBadge('Saved in this browser · revision v'+revision);return true;}catch(e){renderSaveBadge('Browser storage unavailable · unsaved',true);announce('Could not save; changes are temporary.');return false;}}
-function render(){for(const t of physical){let b=room.querySelector('[data-table="'+t.id+'"]');if(!b){b=document.createElement('button');b.type='button';b.dataset.table=t.id;b.className='table '+t.shape;b.innerHTML='<i class="chair chair-left" aria-hidden="true"></i><i class="chair chair-right" aria-hidden="true"></i><i class="handle handle-nw" aria-hidden="true"></i><i class="handle handle-ne" aria-hidden="true"></i><i class="handle handle-sw" aria-hidden="true"></i><i class="handle handle-se" aria-hidden="true"></i><span>'+t.id+'</span><small>'+t.seats+' seats</small>';b.addEventListener('pointerdown',startDrag);b.addEventListener('click',()=>{selected=t.id;render();});b.addEventListener('keydown',onKey);room.append(b);}const p=positions[t.id];b.style.left=p.x+'%';b.style.top=p.y+'%';b.classList.toggle('selected',selected===t.id);b.setAttribute('aria-pressed',String(selected===t.id));b.setAttribute('aria-label','Table '+t.id+', '+t.seats+' physical seats, x '+p.x.toFixed(2)+' percent, y '+p.y.toFixed(2)+' percent. Use arrow keys to move.');}const t=physical.find(t=>t.id===selected),p=positions[selected];$('p-id').textContent=t.id;$('p-seats').textContent=t.seats+' seats';$('p-pos').textContent=p.x.toFixed(2)+'%, '+p.y.toFixed(2)+'%';$('p-dim').textContent=t.shape==='round'?'1.20 × 1.20 m':'2.20 × 1.20 m';$('p-rev').textContent='v'+revision;$('p-saved').textContent=savedAt||'Not yet';$('footer-rev').textContent='Revision v'+revision;$('footer-venue').textContent=venue;}
-function move(id,x,y){if(!positions[id]||!Number.isFinite(x)||!Number.isFinite(y))return false;const nx=Math.max(12,Math.min(88,Math.round(x*100)/100)),ny=Math.max(12,Math.min(88,Math.round(y*100)/100));if(nx===positions[id].x&&ny===positions[id].y)return false;const expected=revision;positions[id]={x:nx,y:ny};save(expected);render();return true;}
-const arrows={ArrowUp:[0,-1],ArrowDown:[0,1],ArrowLeft:[-1,0],ArrowRight:[1,0]};
-function onKey(e){if(!arrows[e.key])return;e.preventDefault();selected=e.currentTarget.dataset.table;const p=positions[selected],d=arrows[e.key],step=e.shiftKey?.25:1;move(selected,p.x+d[0]*step,p.y+d[1]*step);room.querySelector('[data-table="'+selected+'"]').focus();}
-function startDrag(e){if(e.button!==0)return;const id=e.currentTarget.dataset.table;selected=id;const r=room.getBoundingClientRect(),p=positions[id];drag={id,pointer:e.pointerId,startX:e.clientX,startY:e.clientY,x:p.x,y:p.y,width:r.width,height:r.height};e.currentTarget.setPointerCapture(e.pointerId);e.currentTarget.addEventListener('pointermove',dragMove);e.currentTarget.addEventListener('pointerup',endDrag,{once:true});e.currentTarget.addEventListener('pointercancel',cancelDrag,{once:true});render();}
-function dragMove(e){if(!drag||drag.pointer!==e.pointerId)return;const x=Math.max(12,Math.min(88,drag.x+(e.clientX-drag.startX)/drag.width*100)),y=Math.max(12,Math.min(88,drag.y+(e.clientY-drag.startY)/drag.height*100));positions[drag.id]={x:Math.round(x*100)/100,y:Math.round(y*100)/100};render();}
-function endDrag(e){if(!drag||drag.pointer!==e.pointerId)return;const d=drag;drag=null;e.currentTarget.removeEventListener('pointermove',dragMove);const p=positions[d.id];if(p.x!==d.x||p.y!==d.y){const expected=revision;save(expected);}render();}
-function cancelDrag(e){if(!drag)return;positions[drag.id]={x:drag.x,y:drag.y};drag=null;e.currentTarget.removeEventListener('pointermove',dragMove);render();}
-for(const b of document.querySelectorAll('[data-step]'))b.addEventListener('click',()=>{const d={up:[0,-1],down:[0,1],left:[-1,0],right:[1,0]}[b.dataset.step],p=positions[selected];move(selected,p.x+d[0],p.y+d[1]);});
-$('venue').addEventListener('change',e=>{venue=e.target.value;selected='T2';read();render();announce('Switched to fictional venue '+venue);});
-$('reset').addEventListener('click',()=>{if(!confirm('Reset the current venue layout to its default positions?'))return;const expected=revision;positions=defaults();save(expected);render();announce('Reset current venue layout.');});
-$('grid').addEventListener('change',e=>room.classList.toggle('grid-on',e.target.checked));$('bounds').addEventListener('change',e=>room.classList.toggle('bounds-on',e.target.checked));
-window.addEventListener('storage',e=>{if(e.key===key()){read();render();announce('Layout updated from another browser tab.');}});
-read();render();announce('Select or drag a table to edit this fictional layout.');
+function announce(message){$('status').textContent=message;}
+function read(){
+ positions=defaults();revision=0;savedAt='';history=[];
+ try {
+  const raw=localStorage.getItem(key());if(!raw)return;
+  const d=JSON.parse(raw);
+  if(!d||!Number.isSafeInteger(d.revision)||d.revision<0||!validPositions(d.positions))return;
+  positions=clone(d.positions);revision=d.revision;savedAt=typeof d.savedAt==='string'?d.savedAt:'';
+  if(Array.isArray(d.history)){
+   history=d.history.filter(h=>h&&Number.isSafeInteger(h.revision)&&h.revision>=0&&h.revision<=revision&&validPositions(h.positions)&&typeof h.action==='string')
+    .slice(0,30).map(h=>({revision:h.revision,savedAt:typeof h.savedAt==='string'?h.savedAt:'',action:h.action.slice(0,100),positions:clone(h.positions)}));
+  }
+  if(!history.length)history=[{revision,savedAt,action:'Previous saved layout',positions:clone(positions)}];
+ }catch(e){announce('Browser storage is unavailable. Changes will be temporary.');}
+}
+function renderSaveBadge(message,isWarning=false){
+ const badge=$('save-badge');badge.className=isWarning?'saved warn':'saved';
+ const symbol=document.createElementNS('http://www.w3.org/2000/svg','svg');symbol.setAttribute('class','icon');symbol.setAttribute('aria-hidden','true');
+ const use=document.createElementNS('http://www.w3.org/2000/svg','use');use.setAttribute('href',isWarning?'#i-info':'#i-check');
+ symbol.append(use);badge.replaceChildren(symbol,document.createTextNode(message));
+}
+function save(expected,action){
+ try{
+  const raw=localStorage.getItem(key()),latest=raw?JSON.parse(raw):null;
+  const current=latest&&Number.isSafeInteger(latest.revision)?latest.revision:0;
+  if(current!==expected){read();render();announce('Conflict: this venue layout changed in another tab. Latest saved version loaded.');return false;}
+  const nextRevision=expected+1,nextSavedAt=new Date().toLocaleString();
+  const nextHistory=[{revision:nextRevision,savedAt:nextSavedAt,action,positions:clone(positions)},...history].slice(0,30);
+  localStorage.setItem(key(),JSON.stringify({revision:nextRevision,savedAt:nextSavedAt,positions,history:nextHistory}));
+  revision=nextRevision;savedAt=nextSavedAt;history=nextHistory;
+  renderSaveBadge('Saved in this browser · v'+revision);
+  return true;
+ }catch(e){renderSaveBadge('Browser storage unavailable · unsaved',true);announce('Changes are temporary; browser storage could not be updated.');return false;}
+}
+function revisionList(){
+ const list=$('revision-list');list.replaceChildren();
+ const entries=history.length?history:[{revision:0,action:'Initial layout',savedAt:'Not yet saved',positions:defaults()}];
+ entries.forEach((item,index)=>{
+  const card=document.createElement('div');card.className='revision-card'+(item.revision===revision?' current':'');
+  const number=document.createElement('strong');number.className='revision-number';number.textContent='Revision v'+item.revision;
+  const action=document.createElement('span');action.textContent=item.action;
+  const when=document.createElement('small');when.textContent=item.savedAt||'Original browser draft';
+  card.append(number,action,when);
+  if(!(index===0&&item.revision===revision)){
+   const btn=document.createElement('button');btn.type='button';btn.textContent='Restore this layout';
+   btn.setAttribute('aria-label','Restore layout revision '+item.revision);
+   btn.addEventListener('click',()=>restoreRevision(item));card.append(btn);
+  }else{
+   const marker=document.createElement('small');marker.textContent='Current';card.append(marker);
+  }
+  list.append(card);
+ });
+}
+function switchTab(tab){
+ activeTab=tab;
+ const revisionMode=tab==='revisions';
+ $('property-view').hidden=revisionMode;$('revision-view').hidden=!revisionMode;
+ $('tab-properties').setAttribute('aria-selected',String(!revisionMode));
+ $('tab-revisions').setAttribute('aria-selected',String(revisionMode));
+ $('show-properties').classList.toggle('active',!revisionMode);
+ $('show-revisions').classList.toggle('active',revisionMode);
+ $('show-layout').classList.toggle('active',!revisionMode);
+ $('show-properties').setAttribute('aria-pressed',String(!revisionMode));
+ $('show-revisions').setAttribute('aria-pressed',String(revisionMode));
+ $('show-layout').setAttribute('aria-pressed',String(!revisionMode));
+ if(revisionMode)revisionList();
+}
+function restoreRevision(item){
+ if(!validPositions(item.positions))return;
+ const old=clone(positions),expected=revision;positions=clone(item.positions);
+ if(!save(expected,'Restored revision v'+item.revision)){positions=validPositions(positions)?positions:old;render();return;}
+ render();announce('Restored revision v'+item.revision+' as new revision v'+revision+'.');
+}
+function render(){
+ for(const t of physical){
+  let b=room.querySelector('[data-table="'+t.id+'"]');
+  if(!b){
+   b=document.createElement('button');b.type='button';b.dataset.table=t.id;b.className='table '+t.shape;
+   b.innerHTML='<i class="chair chair-left" aria-hidden="true"></i><i class="chair chair-right" aria-hidden="true"></i><i class="handle handle-nw" aria-hidden="true"></i><i class="handle handle-ne" aria-hidden="true"></i><i class="handle handle-sw" aria-hidden="true"></i><i class="handle handle-se" aria-hidden="true"></i><span>'+t.id+'</span><small>'+t.seats+' seats</small>';
+   b.addEventListener('pointerdown',startDrag);
+   b.addEventListener('click',()=>{selected=t.id;selectedFixture=null;switchTab('properties');render();});
+   b.addEventListener('keydown',onKey);room.append(b);
+  }
+  const p=positions[t.id];b.style.left=p.x+'%';b.style.top=p.y+'%';
+  b.classList.toggle('selected',!selectedFixture&&selected===t.id);
+  b.setAttribute('aria-pressed',String(!selectedFixture&&selected===t.id));
+  b.setAttribute('aria-label','Table '+t.id+', '+t.seats+' seats, x '+p.x.toFixed(2)+' percent, y '+p.y.toFixed(2)+' percent. Use arrow keys to move.');
+ }
+ for(const button of room.querySelectorAll('[data-fixture]'))button.classList.toggle('selected',selectedFixture===button.dataset.fixture);
+ const tableMode=!selectedFixture;
+ $('table-properties').hidden=!tableMode;$('fixture-properties').hidden=tableMode;
+ if(tableMode){
+  const t=physical.find(t=>t.id===selected),p=positions[selected];
+  $('p-id').textContent=t.id;$('p-seats').textContent=t.seats+' seats';$('p-pos').textContent=p.x.toFixed(2)+'%, '+p.y.toFixed(2)+'%';
+  $('p-dim').textContent=t.shape==='round'?'1.20 × 1.20 m':'2.20 × 1.20 m';$('p-rev').textContent='v'+revision;$('p-saved').textContent=savedAt||'Not yet';
+ }else{
+  const fixture=fixtures[selectedFixture];$('f-name').textContent=fixture.name;$('f-location').textContent=fixture.location;
+  $('f-kind').textContent=fixture.kind;$('f-description').textContent=fixture.description;
+ }
+ $('footer-rev').textContent='Revision v'+revision;$('footer-venue').textContent=venue;
+ if(!savedAt&&revision===0)renderSaveBadge('Browser draft · not yet saved',true);
+ else renderSaveBadge('Saved in this browser · v'+revision);
+ if(activeTab==='revisions')revisionList();
+}
+function move(id,x,y){
+ if(!positions[id]||!Number.isFinite(x)||!Number.isFinite(y))return false;
+ const nx=Math.max(12,Math.min(88,Math.round(x*100)/100)),ny=Math.max(12,Math.min(88,Math.round(y*100)/100));
+ if(nx===positions[id].x&&ny===positions[id].y)return false;
+ const prior=clone(positions),expected=revision;positions[id]={x:nx,y:ny};
+ if(!save(expected,'Moved '+id)) {
+  // A stale save reloads the latest coordinates; an unavailable store leaves a temporary draft.
+  if(revision!==expected)positions=clone(positions);
+ }
+ render();return true;
+}
+function onKey(e){
+ if(!arrows[e.key])return;e.preventDefault();
+ selected=e.currentTarget.dataset.table;selectedFixture=null;
+ const p=positions[selected],d=arrows[e.key],step=e.shiftKey?.25:1;
+ move(selected,p.x+d[0]*step,p.y+d[1]*step);
+ room.querySelector('[data-table="'+selected+'"]').focus();
+}
+function startDrag(e){
+ if(e.button!==0)return;selected=e.currentTarget.dataset.table;selectedFixture=null;
+ const r=room.getBoundingClientRect(),p=positions[selected];
+ drag={id:selected,pointer:e.pointerId,startX:e.clientX,startY:e.clientY,x:p.x,y:p.y,width:r.width,height:r.height};
+ e.currentTarget.setPointerCapture(e.pointerId);e.currentTarget.addEventListener('pointermove',dragMove);
+ e.currentTarget.addEventListener('pointerup',endDrag,{once:true});
+ e.currentTarget.addEventListener('pointercancel',cancelDrag,{once:true});
+ switchTab('properties');render();
+}
+function dragMove(e){
+ if(!drag||drag.pointer!==e.pointerId)return;
+ const x=Math.max(12,Math.min(88,drag.x+(e.clientX-drag.startX)/drag.width*100)),y=Math.max(12,Math.min(88,drag.y+(e.clientY-drag.startY)/drag.height*100));
+ positions[drag.id]={x:Math.round(x*100)/100,y:Math.round(y*100)/100};render();
+}
+function endDrag(e){
+ if(!drag||drag.pointer!==e.pointerId)return;
+ const d=drag;drag=null;e.currentTarget.removeEventListener('pointermove',dragMove);
+ const p=positions[d.id];
+ if(p.x!==d.x||p.y!==d.y)save(revision,'Dragged '+d.id);
+ render();
+}
+function cancelDrag(e){
+ if(!drag)return;positions[drag.id]={x:drag.x,y:drag.y};drag=null;
+ e.currentTarget.removeEventListener('pointermove',dragMove);render();
+}
+for(const b of document.querySelectorAll('[data-step]'))b.addEventListener('click',()=>{
+ if(selectedFixture){announce('Kitchen and reception fixtures are fixed. Select a table to move it.');return;}
+ const d={up:[0,-1],down:[0,1],left:[-1,0],right:[1,0]}[b.dataset.step],p=positions[selected];
+ move(selected,p.x+d[0],p.y+d[1]);
+});
+for(const b of document.querySelectorAll('[data-fixture]'))b.addEventListener('click',()=>{
+ selectedFixture=b.dataset.fixture;switchTab('properties');render();announce(fixtures[selectedFixture].name+' selected · fixed venue fixture.');
+});
+$('venue').addEventListener('change',e=>{venue=e.target.value;selected='T2';selectedFixture=null;read();switchTab('properties');render();announce('Switched venue to '+venue+'.');});
+$('reset').addEventListener('click',()=>{
+ if(!confirm('Reset the selected venue layout to its default table positions?'))return;
+ const prior=clone(positions),expected=revision;positions=defaults();
+ if(!save(expected,'Reset table layout')){if(revision===expected)positions=prior;}
+ render();announce('Default table coordinates restored for '+venue+'.');
+});
+$('grid').addEventListener('change',e=>room.classList.toggle('grid-on',e.target.checked));
+$('bounds').addEventListener('change',e=>room.classList.toggle('bounds-on',e.target.checked));
+$('show-layout').addEventListener('click',()=>{selectedFixture=null;switchTab('properties');render();room.querySelector('[data-table="'+selected+'"]').focus();});
+$('show-properties').addEventListener('click',()=>switchTab('properties'));
+$('show-revisions').addEventListener('click',()=>switchTab('revisions'));
+$('tab-properties').addEventListener('click',()=>switchTab('properties'));
+$('tab-revisions').addEventListener('click',()=>switchTab('revisions'));
+window.addEventListener('storage',e=>{if(e.key===key()){read();render();announce('Saved layout updated from another browser tab.');}});
+read();switchTab('properties');render();announce('Select a table, kitchen or reception desk to inspect this venue layout.');
 </script></body></html>
