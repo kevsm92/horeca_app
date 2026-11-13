@@ -11,7 +11,8 @@ function run({saveResult=true,revisionAfter=0,changed=true,stale=false}={}){
   save:(rev,description)=>{calls.push([rev,description]);if(stale){context.revision=revisionAfter;context.positions={T1:{x:65,y:66}};}return saveResult;},
   render:()=>calls.push('render')});
  const target={removeEventListener:type=>calls.push(type)};
- vm.runInContext(source+'\nendDrag(event)',vm.createContext({...context,event:{pointerId:4,currentTarget:target}}),{timeout:1000});
+ context.event={pointerId:4,currentTarget:target};
+ vm.runInContext(source+'\nendDrag(event)',context,{timeout:1000});
  return {positions:context.positions,calls};
 }
 test('drag persists changed coordinates',()=>{const r=run();assert.equal(r.positions.T1.x,36);assert.deepEqual(r.calls,[ 'pointermove',[0,'Dragged T1'],'render']);});
