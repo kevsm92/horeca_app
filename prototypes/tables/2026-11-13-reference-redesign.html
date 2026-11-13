@@ -144,6 +144,16 @@ button{font-weight:680}
 @media(max-width:1100px){.editor-grid{grid-template-columns:175px minmax(280px,1fr)}.properties{grid-column:1/-1}}
 @media(max-width:750px){.editor-grid{grid-template-columns:1fr}.room{height:440px}}
 @media(max-width:580px){.room{height:370px}}
+
+/* Direct, keyboard-accessible controls over furniture on the floor plan. */
+.room .placement-toolbar{position:absolute;z-index:9;left:var(--table-x);top:max(8px,calc(var(--table-y) - 76px));transform:translateX(-50%);display:flex;gap:5px;align-items:center;justify-content:center}
+.room .placement-action{display:grid;place-items:center;width:38px;height:38px;min-width:38px;padding:0;border:2px solid #fff;border-radius:50%;box-shadow:0 2px 8px #25354b50;font-size:28px;font-weight:900;line-height:1;cursor:pointer}
+.room .placement-action.approve{background:#17884c;color:#fff}
+.room .placement-action.remove{background:#f00;color:#fff}
+.room .placement-action:hover{filter:brightness(.92)}
+.room .placement-action:focus-visible{outline:3px solid #4733cf;outline-offset:2px}
+.room .table.pending-placement{border-style:dashed;outline:2px solid #17884c;outline-offset:5px}
+@media(prefers-reduced-motion:reduce){.room .placement-action{transition:none}}
 </style></head><body>
 <svg class="svg-sprite" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
 <symbol id="i-table" viewBox="0 0 24 24"><path d="M3 8h18M5 8l1-4h12l1 4M6 8l1 12m11-12-1 12M4 12h16"/></symbol>
@@ -202,7 +212,7 @@ button{font-weight:680}
 // Standalone browser-local demo: five seeded inventory records, NOT a live database API.
 const physical=Object.freeze([{id:'T1',seats:2,shape:'round',x:18,y:20},{id:'T2',seats:4,shape:'large',x:50,y:43},{id:'T3',seats:6,shape:'large',x:79,y:21},{id:'T4',seats:4,shape:'large',x:23,y:77},{id:'T5',seats:4,shape:'round',x:78,y:78}]);
 const $=id=>document.getElementById(id),room=$('room'),arrows={ArrowUp:[0,-1],ArrowDown:[0,1],ArrowLeft:[-1,0],ArrowRight:[1,0]};
-let venue='VEN-001',selected='T2',revision=0,savedAt='',positions={},history=[],drag=null,activeTab='properties';
+let venue='VEN-001',selected='T2',revision=0,savedAt='',positions={},history=[],drag=null,activeTab='properties',pendingPlacement=null;
 const key=()=> 'horeca-floor-design-v2:'+venue; // Backwards compatible with previous local drafts.
 const defaults=()=>Object.fromEntries(physical.map(t=>[t.id,{x:t.x,y:t.y}]));
 const clone=p=>Object.fromEntries(physical.filter(t=>Object.hasOwn(p,t.id)).map(t=>[t.id,{x:p[t.id].x,y:p[t.id].y}]));
@@ -213,7 +223,7 @@ function validPositions(p){
 }
 function announce(m){$('status').textContent=m;}
 function read(){
- positions=defaults();revision=0;savedAt='';history=[];
+ positions=defaults();revision=0;savedAt='';history=[];pendingPlacement=null;
  try{
   const raw=localStorage.getItem(key());if(!raw)return;
   const d=JSON.parse(raw);if(!d||!Number.isSafeInteger(d.revision)||d.revision<0||!validPositions(d.positions))return;
@@ -275,7 +285,7 @@ function restoreRevision(item){
 function renderInventory(){
  const list=$('inventory-list');list.replaceChildren();
  for(const t of physical){
-  const placed=Object.hasOwn(positions,t.id),card=document.createElement('div');
+  const pending=pendingPlacement?.id===t.id,placed=Object.hasOwn(positions,t.id)||pending,card=document.createElement('div');
   card.className='inventory-card '+(placed?'placed':'available');card.draggable=!placed;
   card.setAttribute('aria-label','Table '+t.id+', '+t.seats+' seats, '+(placed?'already on floor plan':'available'));
   const top=document.createElement('div');top.className='inventory-top';
@@ -284,7 +294,7 @@ function renderInventory(){
   const name=document.createElement('strong');name.textContent='Table '+t.id;
   const desc=document.createElement('small');desc.textContent=t.seats+' seats · '+(t.shape==='round'?'Round':'Rectangular');
   detail.append(name,desc);
-  const status=document.createElement('span');status.className='inventory-status'+(placed?' placed':'');status.textContent=placed?'On layout':'Available';
+  const status=document.createElement('span');status.className='inventory-status'+(placed?' placed':'');status.textContent=pending?'Awaiting approval':placed?'On layout':'Available';
   top.append(ico,detail,status);
   const button=document.createElement('button');button.type='button';button.textContent=placed?'Already placed':'Place on layout';button.disabled=placed;
   if(!placed){
@@ -294,9 +304,19 @@ function renderInventory(){
   card.append(top,button);list.append(card);
  }
 }
+function addPlacementAction(toolbar,id,kind){
+ const b=document.createElement('button');b.type='button';b.className='placement-action '+kind;
+ b.textContent=kind==='approve'?'✓':'×';
+ const label=kind==='approve'?'Confirm placement of table '+id:'Remove table '+id+' from the layout';
+ b.title=label;b.setAttribute('aria-label',label);
+ b.addEventListener('pointerdown',e=>e.stopPropagation());
+ b.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();if(kind==='approve')approvePlacement(id);else removeFromLayout(id,true);});
+ toolbar.append(b);
+}
 function render(){
- if(selected&&!Object.hasOwn(positions,selected))selected=null;
- const ids=new Set(Object.keys(positions));
+ if(selected&&!Object.hasOwn(positions,selected)&&pendingPlacement?.id!==selected)selected=null;
+ const ids=new Set([...Object.keys(positions),...(pendingPlacement?[pendingPlacement.id]:[])]);
+ for(const node of room.querySelectorAll('[data-placement-toolbar]'))node.remove();
  for(const node of room.querySelectorAll('[data-table]'))if(!ids.has(node.dataset.table))node.remove();
  for(const t of physical){
   if(!ids.has(t.id))continue;
@@ -306,40 +326,69 @@ function render(){
    b.innerHTML='<i class="chair chair-left" aria-hidden="true"></i><i class="chair chair-right" aria-hidden="true"></i><i class="handle handle-nw" aria-hidden="true"></i><i class="handle handle-ne" aria-hidden="true"></i><i class="handle handle-sw" aria-hidden="true"></i><i class="handle handle-se" aria-hidden="true"></i><span>'+t.id+'</span><small>'+t.seats+' seats</small>';
    b.addEventListener('pointerdown',startDrag);b.addEventListener('click',()=>{selected=t.id;switchTab('properties');render();});b.addEventListener('keydown',onKey);room.append(b);
   }
-  const p=positions[t.id];b.style.left=p.x+'%';b.style.top=p.y+'%';
+  const pending=pendingPlacement?.id===t.id,p=pending?pendingPlacement:positions[t.id];
+  b.style.left=p.x+'%';b.style.top=p.y+'%';
+  b.classList.toggle('pending-placement',pending);
+  const toolbar=document.createElement('div');toolbar.dataset.placementToolbar=t.id;toolbar.className='placement-toolbar';
+  toolbar.style.setProperty('--table-x',p.x+'%');toolbar.style.setProperty('--table-y',p.y+'%');
+  toolbar.setAttribute('role','group');toolbar.setAttribute('aria-label','Actions for table '+t.id);
+  if(pending)addPlacementAction(toolbar,t.id,'approve');
+  addPlacementAction(toolbar,t.id,'remove');room.append(toolbar);
   b.classList.toggle('selected',selected===t.id);b.setAttribute('aria-pressed',String(selected===t.id));
   b.setAttribute('aria-label','Table '+t.id+', '+t.seats+' seats at '+p.x.toFixed(2)+'%, '+p.y.toFixed(2)+'%. Use arrows to move, Delete to remove.');
  }
- const t=physical.find(t=>t.id===selected),p=positions[selected];
+ const t=physical.find(t=>t.id===selected),p=pendingPlacement?.id===selected?pendingPlacement:positions[selected];
  $('table-properties').hidden=!t||!p;$('empty-properties').hidden=!!t&&!!p;
  if(t&&p){
   $('p-id').textContent=t.id;$('p-seats').textContent=t.seats+' seats';$('p-pos').textContent=p.x.toFixed(2)+'%, '+p.y.toFixed(2)+'%';
   $('p-dim').textContent=t.shape==='round'?'1.20 × 1.20 m':'2.20 × 1.20 m';
-  $('p-rev').textContent='v'+revision;$('p-saved').textContent=savedAt||'Not yet';
+  $('p-rev').textContent='v'+revision;$('p-saved').textContent=pendingPlacement?.id===selected?'Awaiting approval':savedAt||'Not yet';
  }
  $('footer-rev').textContent='Revision v'+revision;$('footer-venue').textContent=venue;
- renderSaveBadge(!savedAt&&revision===0?'Browser draft · not yet saved':'Saved in this browser · v'+revision,!savedAt&&revision===0);
+ if(pendingPlacement)renderSaveBadge('Placement pending · click the green check above the table',true);
+ else renderSaveBadge(!savedAt&&revision===0?'Browser draft · not yet saved':'Saved in this browser · v'+revision,!savedAt&&revision===0);
  if(activeTab==='revisions')revisionList();
  renderInventory();
 }
 function placeAt(id,x,y){
- const t=physical.find(t=>t.id===id);if(!t||Object.hasOwn(positions,id)||!Number.isFinite(x)||!Number.isFinite(y))return false;
+ const t=physical.find(t=>t.id===id);
+ if(!t||Object.hasOwn(positions,id)||!Number.isFinite(x)||!Number.isFinite(y))return false;
+ if(pendingPlacement){announce('Confirm or discard the pending table before placing another.');return false;}
  const nx=Math.max(12,Math.min(88,Math.round(x*100)/100)),ny=Math.max(12,Math.min(88,Math.round(y*100)/100));
- const expected=revision;positions[id]={x:nx,y:ny};
- if(!save(expected,'Placed '+id)){if(revision===expected)delete positions[id];render();return false;}
- selected=id;render();announce('Table '+id+' placed.');return true;
+ pendingPlacement={id,x:nx,y:ny};
+ selected=id;render();announce('Table '+id+' is a preview. Click the green check above it to confirm placement.');
+ return true;
 }
-function removeFromLayout(id){
+function approvePlacement(id){
+ if(!pendingPlacement||pendingPlacement.id!==id||Object.hasOwn(positions,id))return false;
+ const preview=pendingPlacement,old=clone(positions),expected=revision;
+ pendingPlacement=null;positions[id]={x:preview.x,y:preview.y};
+ if(!save(expected,'Placed '+id)){
+  if(revision===expected){positions=old;pendingPlacement=preview;}
+  render();return false;
+ }
+ selected=id;render();announce('Table '+id+' placement confirmed and saved.');
+ return true;
+}
+function removeFromLayout(id,skipPrompt=false){
+ if(pendingPlacement?.id===id){
+  pendingPlacement=null;selected=Object.keys(positions)[0]||null;
+  render();announce('Unconfirmed table '+id+' discarded. No layout change saved.');return true;
+ }
  if(!Object.hasOwn(positions,id))return false;
- if(!confirm('Remove table '+id+' from the floor plan? It remains in Furniture inventory.'))return false;
+ if(!skipPrompt&&!confirm('Remove table '+id+' from the floor plan? It remains in Furniture inventory.'))return false;
  const old=clone(positions),expected=revision;delete positions[id];
  if(!save(expected,'Removed '+id)){if(revision===expected)positions=old;render();return false;}
- selected=Object.keys(positions)[0]||null;render();announce('Table '+id+' removed from layout and available in Furniture.');return true;
+ selected=Object.keys(positions)[0]||null;render();
+ announce('Table '+id+' removed from layout and available in Furniture.');
+ return true;
 }
 function move(id,x,y){
- if(!positions[id]||!Number.isFinite(x)||!Number.isFinite(y))return false;
+ const preview=pendingPlacement?.id===id,position=preview?pendingPlacement:positions[id];
+ if(!position||!Number.isFinite(x)||!Number.isFinite(y))return false;
  const nx=Math.max(12,Math.min(88,Math.round(x*100)/100)),ny=Math.max(12,Math.min(88,Math.round(y*100)/100));
- if(nx===positions[id].x&&ny===positions[id].y)return false;
+ if(nx===position.x&&ny===position.y)return false;
+ if(preview){pendingPlacement={...pendingPlacement,x:nx,y:ny};render();return true;}
  const old=clone(positions),expected=revision;positions[id]={x:nx,y:ny};
  if(!save(expected,'Moved '+id)){if(revision===expected)positions=old;render();return false;}
  render();return true;
@@ -348,15 +397,15 @@ function onKey(e){
  if(e.key==='Delete'||e.key==='Backspace'){e.preventDefault();removeFromLayout(e.currentTarget.dataset.table);return;}
  if(!arrows[e.key])return;
  e.preventDefault();selected=e.currentTarget.dataset.table;
- const p=positions[selected],d=arrows[e.key],step=e.shiftKey?.25:1;
+ const p=pendingPlacement?.id===selected?pendingPlacement:positions[selected],d=arrows[e.key],step=e.shiftKey?.25:1;
  move(selected,p.x+d[0]*step,p.y+d[1]*step);
  const node=room.querySelector('[data-table="'+selected+'"]');if(node)node.focus();
 }
 function startDrag(e){
  if(e.button!==0||drag)return;
  selected=e.currentTarget.dataset.table;
- const r=room.getBoundingClientRect(),p=positions[selected];if(!p)return;
- drag={id:selected,node:e.currentTarget,pointer:e.pointerId,revision,startX:e.clientX,startY:e.clientY,x:p.x,y:p.y,width:r.width,height:r.height};
+ const r=room.getBoundingClientRect(),p=pendingPlacement?.id===selected?pendingPlacement:positions[selected];if(!p)return;
+ drag={id:selected,node:e.currentTarget,pointer:e.pointerId,revision,pending:pendingPlacement?.id===selected,startX:e.clientX,startY:e.clientY,x:p.x,y:p.y,width:r.width,height:r.height};
  e.currentTarget.setPointerCapture(e.pointerId);e.currentTarget.addEventListener('pointermove',dragMove);
  e.currentTarget.addEventListener('pointerup',endDrag,{once:true});
  e.currentTarget.addEventListener('pointercancel',cancelDrag,{once:true});
@@ -365,7 +414,9 @@ function startDrag(e){
 function dragMove(e){
  if(!drag||drag.pointer!==e.pointerId)return;
  const x=Math.max(12,Math.min(88,drag.x+(e.clientX-drag.startX)/drag.width*100)),y=Math.max(12,Math.min(88,drag.y+(e.clientY-drag.startY)/drag.height*100));
- positions[drag.id]={x:Math.round(x*100)/100,y:Math.round(y*100)/100};render();
+ if(drag.pending&&pendingPlacement?.id===drag.id)pendingPlacement={...pendingPlacement,x:Math.round(x*100)/100,y:Math.round(y*100)/100};
+ else positions[drag.id]={x:Math.round(x*100)/100,y:Math.round(y*100)/100};
+ render();
 }
 function cleanupDrag(d){
  if(!d)return;
@@ -380,6 +431,7 @@ function endDrag(e){
  if(!drag||drag.pointer!==e.pointerId)return;
  const d=drag;drag=null;cleanupDrag(d);
  if(revision!==d.revision){render();announce('Drag cancelled: the layout revision changed.');return;}
+ if(d.pending){render();announce('Preview moved. Click the green check to confirm placement.');return;}
  const p=positions[d.id];if(p&&(p.x!==d.x||p.y!==d.y)){
   const expected=revision;
   if(!save(expected,'Dragged '+d.id)&&revision===expected)positions[d.id]={x:d.x,y:d.y};
@@ -394,12 +446,15 @@ function cancelDrag(e){
  if(!drag||drag.pointer!==e.pointerId)return;
  const d=drag;drag=null;cleanupDrag(d);
  // A storage event may already have loaded a newer revision: never restore stale coordinates.
- if(revision===d.revision)positions[d.id]={x:d.x,y:d.y};
+ if(revision===d.revision){
+  if(d.pending&&pendingPlacement?.id===d.id)pendingPlacement={...pendingPlacement,x:d.x,y:d.y};
+  else if(!d.pending)positions[d.id]={x:d.x,y:d.y};
+ }
  render();
 }
 for(const b of document.querySelectorAll('[data-step]'))b.addEventListener('click',()=>{
- if(!selected||!positions[selected]){announce('Select a table first.');return;}
- const d={up:[0,-1],down:[0,1],left:[-1,0],right:[1,0]}[b.dataset.step],p=positions[selected];move(selected,p.x+d[0],p.y+d[1]);
+ if(!selected||!positions[selected]&&pendingPlacement?.id!==selected){announce('Select a table first.');return;}
+ const d={up:[0,-1],down:[0,1],left:[-1,0],right:[1,0]}[b.dataset.step],p=pendingPlacement?.id===selected?pendingPlacement:positions[selected];move(selected,p.x+d[0],p.y+d[1]);
 });
 room.addEventListener('dragover',e=>{
  if(!Array.from(e.dataTransfer.types||[]).includes('application/x-horeca-table'))return;
@@ -413,11 +468,12 @@ room.addEventListener('drop',e=>{
 });
 document.addEventListener('dragend',()=>room.classList.remove('inventory-drop'));
 $('remove-table').addEventListener('click',()=>{if(selected)removeFromLayout(selected);});
-$('venue').addEventListener('change',e=>{if(drag){const pending=drag;drag=null;cleanupDrag(pending);}venue=e.target.value;selected='T2';read();switchTab('properties');render();announce('Switched venue to '+venue+'.');});
+$('venue').addEventListener('change',e=>{if(drag){const pending=drag;drag=null;cleanupDrag(pending);}pendingPlacement=null;venue=e.target.value;selected='T2';read();switchTab('properties');render();announce('Switched venue to '+venue+'.');});
 $('reset').addEventListener('click',()=>{
  if(!confirm('Reset this venue to all five original table placements?'))return;
  const old=clone(positions),expected=revision;positions=defaults();selected='T2';
  if(!save(expected,'Reset table placements')){if(revision===expected)positions=old;}
+ else pendingPlacement=null;
  render();announce('Default table placements restored for '+venue+'.');
 });
 $('grid').addEventListener('change',e=>room.classList.toggle('grid-on',e.target.checked));
