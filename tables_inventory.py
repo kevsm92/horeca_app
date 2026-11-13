@@ -20,3 +20,19 @@ def register_physical_table(db, venue_id, table_id, capacity):
             "INSERT INTO physical_tables (venue_id, table_id, capacity) VALUES (?, ?, ?)",
             (venue_id, table_id, capacity),
         )
+
+
+def list_venue_physical_tables(db, venue_id):
+    """Read only this venue's inventory; authentication is the caller's duty.
+
+    Does not conflate table inventory with layout placement. Safe for a future
+    authenticated API adapter to serialize as JSON.
+    """
+    if not isinstance(venue_id, str) or not venue_id.strip() or venue_id != venue_id.strip():
+        raise ValueError("venue_id must be a nonempty trimmed string")
+    rows = db.execute(
+        "SELECT table_id, capacity FROM physical_tables "
+        "WHERE venue_id=? ORDER BY table_id",
+        (venue_id,),
+    ).fetchall()
+    return [{"id": table_id, "seats":capacity} for table_id, capacity in rows]
