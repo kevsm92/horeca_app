@@ -369,7 +369,11 @@ function dragMove(e){
 function endDrag(e){
  if(!drag||drag.pointer!==e.pointerId)return;
  const d=drag;drag=null;e.currentTarget.removeEventListener('pointermove',dragMove);
- const p=positions[d.id];if(p&&(p.x!==d.x||p.y!==d.y))save(revision,'Dragged '+d.id);render();
+ const p=positions[d.id];if(p&&(p.x!==d.x||p.y!==d.y)){
+  const expected=revision;
+  if(!save(expected,'Dragged '+d.id)&&revision===expected)positions[d.id]={x:d.x,y:d.y};
+ }
+ render();
 }
 function cancelDrag(e){
  if(!drag)return;positions[drag.id]={x:drag.x,y:drag.y};drag=null;
