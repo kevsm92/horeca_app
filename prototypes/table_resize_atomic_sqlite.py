@@ -24,6 +24,21 @@ def install(db):
       FOREIGN KEY (venue_id, table_id) REFERENCES physical_tables(venue_id, table_id));
     CREATE UNIQUE INDEX one_active_per_table ON seating_sessions(venue_id,table_id)
       WHERE state='active';
+    CREATE TRIGGER seating_capacity_guard_insert BEFORE INSERT ON seating_sessions
+    WHEN NEW.state='active'
+    BEGIN
+      SELECT RAISE(ABORT,'seating exceeds capacity') WHERE NOT EXISTS (
+        SELECT 1 FROM physical_tables t WHERE t.venue_id=NEW.venue_id
+        AND t.table_id=NEW.table_id AND NEW.guest_count<=t.capacity_seats);
+    END;
+    CREATE TRIGGER seating_capacity_guard_update
+    BEFORE UPDATE OF guest_count,state,table_id,venue_id ON seating_sessions
+    WHEN NEW.state='active'
+    BEGIN
+      SELECT RAISE(ABORT,'seating exceeds capacity') WHERE NOT EXISTS (
+        SELECT 1 FROM physical_tables t WHERE t.venue_id=NEW.venue_id
+        AND t.table_id=NEW.table_id AND NEW.guest_count<=t.capacity_seats);
+    END;
     CREATE TRIGGER resize_occupancy_guard BEFORE UPDATE OF capacity_seats ON physical_tables
     BEGIN
       SELECT RAISE(ABORT,'occupied beyond proposed seats') WHERE EXISTS (
@@ -97,6 +112,25 @@ class AtomicResizeTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             resize(self.db,'v3','t1',0,3)
         self.assertEqual(self.state('v2'),(4,0))
+
+    def test_oversized_seating_insert_rejected(self):
+        with self.assertRaises(sqlite3.IntegrityError):
+            self.db.execute("INSERT INTO seating_sessions VALUES ('v1','s2','t1',7,'active')")
+        self.assertEqual(self.state(),(4,0))
+
+    def test_guest_increase_rejected(self):
+        with self.assertRaises(sqlite3.IntegrityError):
+            self.db.execute("UPDATE seating_sessions SET guest_count=5 WHERE venue_id='v1' AND session_id='s1'")
+        self.assertEqual(self.db.execute("SELECT guest_count FROM seating_sessions WHERE venue_id='v1'").fetchone(),(3,))
+
+    def test_activating_oversized_session_rejected(self):
+        self.db.execute("INSERT INTO seating_sessions VALUES ('v1','s2','t1',7,'closed')")
+        with self.assertRaises(sqlite3.IntegrityError):
+            self.db.execute("UPDATE seating_sessions SET state='active' WHERE venue_id='v1' AND session_id='s2'")
+
+    def test_venue_scoped_seating_guard(self):
+        with self.assertRaises(sqlite3.IntegrityError):
+            self.db.execute("INSERT INTO seating_sessions VALUES ('v3','s2','t1',1,'active')")
 
     def test_invalid_type_rejected(self):
         for value in (True,2.5,'3',0,101):
