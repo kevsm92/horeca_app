@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/horeca/contracts/tables/seat-command.v1.schema.json",
+  "title": "HORECA Seat-to-table request v1 (untrusted client input)",
+  "description": "Structural input validation only. The authenticated server must derive actor and venue authorization, lock and recheck venue-owned table inventory, physical capacity, active sessions and idempotency transactionally. Never accept client-provided capacities or occupancy.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["table_id", "guest_count", "idempotency_key", "expected_table_revision"],
+  "properties": {
+    "table_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"},
+    "guest_count": {"type": "integer", "minimum": 1, "maximum": 1000},
+    "idempotency_key": {"type": "string", "pattern": "^[A-Za-z0-9_-]{16,128}$"},
+    "expected_table_revision": {"type": "integer", "minimum": 0}
+  }
+}

@@ -1,0 +1,500 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>HORECA | Floor-plan editor</title>
+<style>
+:root{font:14px system-ui,-apple-system,Segoe UI,sans-serif;color:#20263b;background:#f5f6fc}*{box-sizing:border-box}body{margin:0}button,select{font:inherit}button{cursor:pointer;border:1px solid #dfe2ef;background:#fff;border-radius:8px;padding:9px 12px;color:#252b47}button:hover{background:#f0f0ff}button:focus-visible,select:focus-visible{outline:3px solid #6865e9;outline-offset:2px}button[aria-pressed=true],.active{background:#e7e5ff!important;color:#4035b5;border-color:#b6afff}header{background:white;padding:18px max(20px,calc((100vw - 1450px)/2));border-bottom:1px solid #e3e5f0;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}h1{font-size:21px;margin:0}h2{font-size:18px;margin:0 0 7px}h3{font-size:14px;margin:0 0 12px}.sub,.muted{color:#69718a}.sub{font-size:12px;margin:3px 0 0}.pill{padding:7px 11px;background:#e6e2ff;border-radius:8px;color:#5143c5;font-weight:700}.shell{max-width:1450px;margin:20px auto;padding:0 20px}.stats{display:grid;grid-template-columns:1fr 1.1fr 1fr;gap:12px;margin-bottom:14px}.stat,.panel,.editor{background:#fff;border:1px solid #e6e8f1;border-radius:13px;box-shadow:0 3px 14px #292d5010}.stat{padding:16px;min-height:75px}.stat strong{display:block;margin-top:6px}.stat .good{color:#168a53}.editor{overflow:hidden}.editor-head{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;padding:20px;border-bottom:1px solid #e8eaf2}.editor-grid{display:grid;grid-template-columns:190px minmax(340px,1fr) 240px;gap:12px;padding:14px}.sidebar{padding:8px}.sidebar button{display:block;width:100%;text-align:left;margin-bottom:6px}.controls{display:grid;grid-template-columns:repeat(3,40px);gap:5px;justify-content:center}.controls button{margin:0;text-align:center;padding:9px 0}.controls .empty{visibility:hidden}.sidebar .hint{font-size:12px;color:#69718a;line-height:1.5}.toggles{display:grid;gap:10px;margin-top:20px}.toggles label{display:flex;align-items:center;justify-content:space-between}.toggles input{accent-color:#5c55dc}.workspace{min-width:0}.room{position:relative;height:490px;overflow:hidden;border:8px solid #555d6b;border-radius:3px;background:#fcfcfa;touch-action:none}.room.grid-on{background-image:linear-gradient(#d9deef88 1px,transparent 1px),linear-gradient(90deg,#d9deef88 1px,transparent 1px);background-size:25px 25px}.room:before,.room:after{content:"";position:absolute;left:44%;width:13%;height:15px;background:#fcfcfa;border-left:2px solid #8d94a3;border-right:2px solid #8d94a3;z-index:1}.room:before{top:-8px}.room:after{bottom:-8px}.plant{position:absolute;font-size:28px;pointer-events:none}.plant.a{top:8px;left:10px}.plant.b{bottom:8px;right:12px}.plant.c{bottom:8px;left:10px}.guide{position:absolute;inset:4% 4%;border:1px dashed #a7c5b0;pointer-events:none}.room:not(.bounds-on) .guide{display:none}.table{position:absolute;transform:translate(-50%,-50%);min-width:76px;height:60px;padding:5px;background:#e6d5bc;border:2px solid #86715b;border-radius:13px;box-shadow:0 4px 0 #bba58b;touch-action:none;user-select:none;z-index:2;text-align:center;font-weight:700;line-height:1.25}.table.round{border-radius:50%;width:68px;height:68px;min-width:68px}.table.large{width:91px;height:68px}.table small{display:block;font-weight:500;font-size:11px}.table:before,.table:after{content:"";position:absolute;background:#c9a77c;border:2px solid #8c7359;border-radius:7px;z-index:-1}.table:before{width:28px;height:10px;top:-13px;left:calc(50% - 16px)}.table:after{width:28px;height:10px;bottom:-13px;left:calc(50% - 16px)}.table.selected{outline:3px solid #6265ee;outline-offset:8px;box-shadow:0 4px 0 #bba58b,0 0 0 13px #6965ee12}.table:focus-visible{outline:4px solid #3432c7;outline-offset:8px}.properties{padding:14px;border-left:1px solid #e8eaf2}.properties dl{margin:0}.properties dl div{display:flex;justify-content:space-between;gap:8px;padding:12px 0;border-bottom:1px solid #eceef4;font-size:12px}.properties dt{color:#626b82}.properties dd{margin:0;font-weight:700;text-align:right}.saved{margin-top:18px;padding:12px;background:#eaf8f0;border:1px solid #b7e6c7;border-radius:8px;color:#137c43;font-size:12px}.warn{background:#fff1db;border-color:#f4d09d;color:#8b5813}.footer{padding:14px 20px;background:#fbfbfe;border-top:1px solid #e6e8f1;display:flex;gap:18px;flex-wrap:wrap;font-size:12px;color:#535d76}#status{min-height:18px;font-size:12px;color:#4353a5;margin-top:10px}.secondary{font-size:12px}.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}@media(max-width:900px){.editor-grid{grid-template-columns:150px minmax(250px,1fr)}.properties{grid-column:1/-1;border-left:0;border-top:1px solid #e8eaf2}.stats{grid-template-columns:1fr}}@media(max-width:580px){.shell{padding:0 8px}.editor-grid{grid-template-columns:1fr}.room{height:360px}.sidebar{display:grid;grid-template-columns:1fr 1fr;gap:10px}.sidebar>h3,.sidebar>.hint,.sidebar>.toggles{grid-column:1/-1}.controls{justify-content:start}.editor-head{padding:14px}.stats{gap:6px}}
+
+/* 2026-11-13 mockup typography and icons: offline, no external dependencies. */
+:root{font-family:Inter,"Segoe UI",system-ui,-apple-system,sans-serif;color:#202033;font-size:14px}
+.svg-sprite{position:absolute;width:0;height:0;overflow:hidden}
+.icon{width:19px;height:19px;display:inline-block;vertical-align:middle;flex:none;fill:none;stroke:currentColor;stroke-width:1.85;stroke-linecap:round;stroke-linejoin:round}
+h1,h2,h3,.stat-title,.stat strong,.properties dd{letter-spacing:-.025em}
+h1{font-size:clamp(22px,2vw,29px);font-weight:830;line-height:1.18}
+h2{font-size:clamp(21px,1.7vw,27px);font-weight:830}
+h3{font-size:17px;font-weight:800}
+button{font-weight:680}
+.topbar{display:flex;align-items:center;justify-content:flex-start;gap:25px;padding:16px max(20px,calc((100vw - 1450px)/2));box-shadow:0 3px 12px #1e165b0c}
+.brand{display:flex;align-items:center;gap:12px;padding-right:25px;border-right:2px solid #dcdcf3;font-size:25px;font-weight:850;letter-spacing:-.03em}
+.brand-mark{width:43px;height:43px;border-radius:12px;background:linear-gradient(140deg,#7968f7,#4931c5);color:#fff;display:grid;place-items:center;box-shadow:0 5px 14px #6b5ae83d}
+.brand-mark .icon{width:25px;height:25px}
+.page-heading{flex:1;min-width:240px}
+.page-heading .sub{font-size:13px;margin-top:4px}
+.bullet{margin:0 6px}
+.pill{font-size:13px;font-weight:760;background:#e6e2ff}
+.stats{gap:16px;margin-bottom:16px}
+.stat{display:flex;gap:16px;align-items:center;padding:17px 18px;min-height:108px;box-shadow:0 6px 16px #30285c13}
+.stat-icon{display:grid;place-items:center;color:#5d43e2;background:#f0eeff;border-radius:12px;width:47px;height:47px;flex:none}
+.stat-icon .icon{width:29px;height:29px}
+.green-icon{color:#159e57;background:#e4f9ea}
+.stat-content{flex:1;min-width:0}
+.stat-title{font-size:14px;font-weight:820;display:block}
+.stat strong{font-size:clamp(19px,1.5vw,24px);font-weight:840;line-height:1.2;margin-top:5px}
+.stat-detail{display:block;margin-top:7px;color:#6c7390;font-size:12px}
+.progress-stat{position:relative}
+.progress-track{margin-top:11px;width:84%;height:7px;border-radius:5px;background:#dbdbf4;overflow:hidden}
+.progress-track span{display:block;min-width:5px;height:100%;background:#6250e7}
+.progress-number{position:absolute;right:20px;bottom:15px;font-size:12px;font-weight:800}
+.editor{box-shadow:0 9px 28px #34265a15}
+.editor-head{padding:21px 22px}
+.editor-title{display:flex;gap:14px;align-items:center;min-width:250px}
+.editor-symbol{width:47px;height:47px;background:#f0edff;color:#5841d8;display:grid;place-items:center;border-radius:11px;flex:none}
+.editor-symbol .icon{width:32px;height:32px}
+.editor-title .sub{font-size:13px;max-width:490px;line-height:1.4}
+.venue-group{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.venue-group label{font-size:14px;font-weight:800;margin-right:4px}
+.venue-picker{display:flex;align-items:center;gap:8px;padding-left:11px;border:1px solid #b9bbe2;border-radius:9px;color:#4136ac;background:#fff}
+.venue-picker select{border:0;outline-offset:2px;font-weight:760;min-width:165px;padding:10px 5px 10px 0;background:transparent}
+.venue-chip{display:flex;align-items:center;gap:6px;padding:9px 10px;border-radius:8px;color:#1b7440;background:#dff6e7;font-size:12px;font-weight:780}
+.venue-chip .icon{width:17px;height:17px}
+.editor-grid{grid-template-columns:190px minmax(340px,1fr) 255px;gap:14px}
+.sidebar button{display:flex;align-items:center;gap:10px}
+.sidebar .controls button{justify-content:center}
+.sidebar button .icon{color:#4d36d3}
+.controls{grid-template-columns:repeat(3,43px)}
+.controls button{height:41px}
+.sidebar h3{border-bottom:1px solid #eceaf7;padding:3px 0 10px;margin:5px 0 11px}
+.sidebar h3:not(:first-child){margin-top:22px}
+.sidebar .hint{line-height:1.55}
+.properties{padding:18px 15px}
+.properties h3{padding-bottom:12px;border-bottom:1px solid #e6e7f0}
+.properties dl div{align-items:center;gap:7px}
+.properties dt{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:650}
+.properties dt .icon{width:16px;height:16px;color:#4e4886}
+.properties dd{font-size:12px;font-weight:840;white-space:nowrap}
+.saved{display:flex;align-items:center;gap:8px;font-weight:750}
+.saved .icon{width:21px;height:21px}
+.footer{align-items:center;gap:19px;font-size:12px;font-weight:550}
+.footer>span{display:inline-flex;align-items:center;gap:6px}
+.footer .icon{color:#574cc5}
+.table{font-size:16px;font-weight:850;box-shadow:0 4px 0 #bba58b,0 6px 10px #6f5a4e15}
+.table small{font-weight:750;font-size:12px}
+.table .chair{position:absolute;top:calc(50% - 15px);width:11px;height:30px;background:#c9a77c;border:2px solid #8c7359;border-radius:7px;z-index:-1;pointer-events:none}
+.table .chair-left{left:-13px}
+.table .chair-right{right:-13px}
+.table .handle{display:none;position:absolute;width:9px;height:9px;border:2px solid #6552f4;background:#fff;border-radius:50%;z-index:3;pointer-events:none}
+.table.selected .handle{display:block}
+.table .handle-nw{top:-15px;left:-15px}.table .handle-ne{top:-15px;right:-15px}
+.table .handle-sw{bottom:-15px;left:-15px}.table .handle-se{bottom:-15px;right:-15px}
+.room .center-guide{position:absolute;top:0;bottom:0;left:50%;border-left:1px dashed #9395f9;pointer-events:none;opacity:.6}
+.room .horizontal-guide{position:absolute;left:0;right:0;top:50%;border-top:1px dashed #9395f9;pointer-events:none;opacity:.6}
+.room:not(.bounds-on) .center-guide,.room:not(.bounds-on) .horizontal-guide{display:none}
+@media(max-width:1100px){.editor-grid{grid-template-columns:175px minmax(280px,1fr)}.properties{grid-column:1/-1;border-left:0;border-top:1px solid #e8eaf2}.venue-group{width:100%}}
+@media(max-width:750px){.brand{font-size:20px}.page-heading{min-width:180px}.editor-grid{grid-template-columns:1fr}.venue-group{width:100%}.sidebar{display:block}.stats{grid-template-columns:1fr}.room{height:390px}}
+@media(max-width:580px){.topbar{gap:12px}.page-heading{order:3;flex-basis:100%}.brand{padding-right:12px}.editor-head{padding:14px}.editor-title{min-width:0}.editor-symbol{width:40px;height:40px}.room{height:340px}.sidebar .controls{justify-content:start}}
+
+
+/* Venue operator view: no internal development dashboard. */
+.shell{margin-top:18px}.topbar{padding-block:13px}.page-heading h1{font-size:23px}.header-context{display:inline-flex;align-items:center;gap:7px;color:#5947ca;font-size:13px;font-weight:800;background:#eeeaff;padding:9px 12px;border-radius:10px}
+.editor-head{padding:19px 22px}.room{background-color:#fffefa}
+.room.grid-on{background-image:linear-gradient(#cdd4e480 1px,transparent 1px),linear-gradient(90deg,#cdd4e480 1px,transparent 1px)}
+.floor-doors{position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none}
+.floor-label{position:absolute;z-index:1;text-transform:uppercase;font-size:10px;font-weight:850;letter-spacing:.09em;color:#66738a;pointer-events:none}.floor-label-entry{left:51%;bottom:6%;transform:translateX(-50%)}
+.fixture{position:absolute;z-index:1;display:flex!important;margin:0!important;box-shadow:0 3px 10px #635d4a1f;border:2px solid #9e9d91;background:#e9e5da;border-radius:8px;color:#403e41;text-align:center;align-items:center;justify-content:center;touch-action:auto}
+.fixture:hover{background:#e0ded5}.fixture:focus-visible{outline:3px solid #5946e6}
+.fixture.selected{outline:3px solid #6556ec;outline-offset:3px}
+.fixture-kitchen{left:2%;top:36%;width:22%;height:24%;flex-direction:column;gap:9px;padding:8px!important;background:#ece8df}
+.fixture-title{display:flex;align-items:center;gap:5px;font-size:clamp(10px,1.1vw,14px);font-weight:900}
+.fixture-title .icon{width:18px;height:18px}
+.appliances{display:flex;gap:6px;width:100%;justify-content:space-around}
+.appliance{display:flex;align-items:center;flex-direction:column;gap:3px;min-width:0;color:#596274}
+.appliance .icon{width:24px;height:24px;background:#f8f9fb;border:1px solid #b5bac6;padding:3px;border-radius:5px}
+.appliance small{font-size:9px;font-weight:750}
+.fixture-desk{left:59%;top:84%;width:15%;height:10%;font-size:11px;font-weight:850;display:flex;flex-direction:column;gap:2px;padding:3px!important}
+.fixture-desk .icon{width:23px;height:23px}
+.side-tabs{display:flex;gap:5px;border-bottom:1px solid #e1e4f1;padding-bottom:10px;margin-bottom:16px}
+.side-tabs button{padding:8px 9px;font-size:12px;font-weight:820;flex:1;border:0;border-radius:7px;color:#657089}
+.side-tabs button[aria-selected=true]{background:#e9e6ff;color:#4e3ac5}
+.properties [hidden]{display:none!important}
+.properties h3{font-size:15px}.properties .hint{font-size:11px;color:#66718b;line-height:1.6;margin-top:13px}
+.properties dl div{padding:10px 0}.properties dd{white-space:normal;line-height:1.35}
+.fixture-note{font-size:12px;line-height:1.55;color:#58647a}
+.revision-list{display:grid;gap:8px;margin-top:16px;max-height:365px;overflow-y:auto}
+.revision-card{border:1px solid #e1e4ef;background:#fafaff;border-radius:9px;padding:10px;display:grid;gap:4px}
+.revision-card strong{font-size:13px}.revision-card small{font-size:11px;color:#6a7188}.revision-card button{font-size:11px;font-weight:800;padding:5px 8px;justify-self:start;margin-top:4px}
+.revision-card.current{border-color:#a89df6;background:#f4f2ff}
+.revision-card .revision-number{color:#5846c7}
+.sidebar button.active{background:#e7e5ff!important;color:#4035b5}
+@media(max-width:750px){.room{height:440px}.fixture-kitchen{left:1%;width:24%;height:22%}.fixture-title{font-size:11px}.fixture-title .icon{width:15px;height:15px}.appliances{gap:1px}.appliance .icon{width:20px;height:20px}.appliance small{font-size:8px}.fixture-desk{font-size:9px}.fixture-desk .icon{width:18px;height:18px}.floor-label-entry{font-size:8px}}
+@media(max-width:580px){.room{height:370px}.header-context{display:none}.sidebar{display:block}.editor-grid{gap:8px}}
+
+/* Furniture toolbox and genuine white door openings */
+.room{border:0;background-color:#fffefa;overflow:hidden}
+.room:before{content:"";position:absolute;inset:0;width:auto;height:auto;z-index:3;pointer-events:none;border:0;background:linear-gradient(#555d6b,#555d6b) left top/44% 8px no-repeat,linear-gradient(#555d6b,#555d6b) right top/44% 8px no-repeat,linear-gradient(#555d6b,#555d6b) left bottom/44% 8px no-repeat,linear-gradient(#555d6b,#555d6b) right bottom/44% 8px no-repeat,linear-gradient(#555d6b,#555d6b) left top/8px 100% no-repeat,linear-gradient(#555d6b,#555d6b) right top/8px 100% no-repeat}
+.room:after{display:none}
+.floor-doors{z-index:1}
+.editor-grid{grid-template-columns:190px minmax(320px,1fr) 275px}
+.side-tabs{gap:3px}.side-tabs button{padding:9px 3px;font-size:11px}
+.inventory-list{display:grid;gap:10px;margin-top:13px}
+.inventory-card{border:1px solid #e0e3ef;background:white;border-radius:11px;padding:10px;display:grid;gap:8px}
+.inventory-card.available{border-color:#b4aaf5;background:#fbfaff;cursor:grab}
+.inventory-card.available:active{cursor:grabbing}
+.inventory-top{display:flex;align-items:center;gap:9px}
+.inventory-icon{display:grid;place-items:center;width:34px;height:34px;border-radius:9px;background:#e9e5ff;color:#4d3fc9}
+.inventory-detail{display:grid;gap:2px;flex:1;min-width:0}
+.inventory-detail strong{font-size:13px;font-weight:850}
+.inventory-detail small{font-size:11px;color:#667088}
+.inventory-status{font-size:10px;font-weight:770;color:#5b45be}
+.inventory-status.placed{color:#56815f}
+.inventory-card button{font-size:11px;font-weight:780;padding:7px 10px;width:100%}
+.inventory-card button:disabled{cursor:default;color:#69806c;background:#edf6ef;border-color:#d5e8d7}
+.room.inventory-drop{background-color:#f2f0ff;outline:3px dashed #6554da;outline-offset:-15px}
+.remove-table{width:100%;color:#a12b3d;border-color:#efc9d0;background:#fff6f7;margin:12px 0 3px;font-weight:800}
+.remove-table:hover{background:#ffebee}
+#empty-properties{color:#647087;line-height:1.55;font-size:12px}
+.inventory-hint{font-size:12px;line-height:1.55;color:#657089}
+@media(max-width:1100px){.editor-grid{grid-template-columns:175px minmax(280px,1fr)}.properties{grid-column:1/-1}}
+@media(max-width:750px){.editor-grid{grid-template-columns:1fr}.room{height:440px}}
+@media(max-width:580px){.room{height:370px}}
+
+/* Direct, keyboard-accessible controls over furniture on the floor plan. */
+.room .placement-toolbar{position:absolute;z-index:9;left:var(--table-x);top:max(8px,calc(var(--table-y) - 76px));transform:translateX(-50%);display:flex;gap:5px;align-items:center;justify-content:center}
+.room .placement-action{display:grid;place-items:center;width:38px;height:38px;min-width:38px;padding:0;border:2px solid #fff;border-radius:50%;box-shadow:0 2px 8px #25354b50;font-size:28px;font-weight:900;line-height:1;cursor:pointer}
+.room .placement-action.approve{background:#17884c;color:#fff}
+.room .placement-action.remove{background:#f00;color:#fff}
+.room .placement-action:hover{filter:brightness(.92)}
+.room .placement-action:focus-visible{outline:3px solid #4733cf;outline-offset:2px}
+.room .table.pending-placement{border-style:dashed;outline:2px solid #17884c;outline-offset:5px}
+@media(prefers-reduced-motion:reduce){.room .placement-action{transition:none}}
+</style></head><body>
+<svg class="svg-sprite" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+<symbol id="i-table" viewBox="0 0 24 24"><path d="M3 8h18M5 8l1-4h12l1 4M6 8l1 12m11-12-1 12M4 12h16"/></symbol>
+<symbol id="i-store" viewBox="0 0 24 24"><path d="M3 10l2-6h14l2 6v2a3 3 0 0 1-5 2 3 3 0 0 1-5 0 3 3 0 0 1-5 0 3 3 0 0 1-3-2v-2Zm2 5v6h14v-6M9 21v-6h6v6"/></symbol>
+<symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5 9-5Zm-9 9 9 5 9-5M3 16l9 5 9-5"/></symbol>
+<symbol id="i-move" viewBox="0 0 24 24"><path d="M12 2v20M2 12h20m-13-7 3-3 3 3m-6 14 3 3 3-3M5 9l-3 3 3 3m14-6 3 3-3 3"/></symbol>
+<symbol id="i-reset" viewBox="0 0 24 24"><path d="M3 11a9 9 0 1 1 3 7M3 4v7h7"/></symbol>
+<symbol id="i-database" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 4 18 4 18 0V5M3 12c0 4 18 4 18 0"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></symbol>
+<symbol id="i-shield" viewBox="0 0 24 24"><path d="m12 2 9 4v6c0 6-4.2 9-9 10-4.8-1-9-4-9-10V6l9-4Z"/><path d="m8 12 3 3 5-6"/></symbol>
+<symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20v-2a6 6 0 0 1 12 0v2H3Zm14-15a3 3 0 0 1 0 6M17 15a5 5 0 0 1 4 5"/></symbol>
+<symbol id="i-position" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v5m0 10v5M2 12h5m10 0h5"/></symbol>
+<symbol id="i-dimensions" viewBox="0 0 24 24"><path d="M3 9V3h6m6 0h6v6M3 15v6h6m6 0h6v-6M3 3l7 7m11-7-7 7M3 21l7-7m11 7-7-7"/></symbol>
+<symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 6v6l4 2"/></symbol>
+<symbol id="i-arrow-up" viewBox="0 0 24 24"><path d="M12 20V4m-6 6 6-6 6 6"/></symbol>
+<symbol id="i-arrow-down" viewBox="0 0 24 24"><path d="M12 4v16m-6-6 6 6 6-6"/></symbol>
+<symbol id="i-arrow-left" viewBox="0 0 24 24"><path d="M20 12H4m6-6-6 6 6 6"/></symbol>
+<symbol id="i-arrow-right" viewBox="0 0 24 24"><path d="M4 12h16m-6-6 6 6-6 6"/></symbol>
+<symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4m10-4v4M3 10h18"/></symbol>
+<symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 10v6m0-9v.5"/></symbol>
+<symbol id="i-kitchen" viewBox="0 0 24 24"><path d="M4 3v18m16-18v18M4 7h16M7 7v10h10V7M10 11h4m-2-2v4"/></symbol>
+<symbol id="i-stove" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8" cy="8" r="2"/><circle cx="16" cy="8" r="2"/><circle cx="8" cy="16" r="2"/><circle cx="16" cy="16" r="2"/></symbol>
+<symbol id="i-sink" viewBox="0 0 24 24"><path d="M4 9h16v8a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4V9Zm8 12v-3M9 6V4a3 3 0 0 1 6 0v2"/></symbol>
+<symbol id="i-counter" viewBox="0 0 24 24"><path d="M2 8h20v4H2zM5 12v9m14-9v9M5 17h14"/></symbol>
+<symbol id="i-desk" viewBox="0 0 24 24"><path d="M3 10h18v4H3zM5 14v7m14-7v7M7 10V5h10v5"/></symbol>
+</svg>
+<header class="topbar"><div class="brand"><span class="brand-mark"><svg class="icon" aria-hidden="true"><use href="#i-store"/></svg></span><strong>HORECA</strong></div><div class="page-heading"><h1>Floor Plan</h1><p class="sub">Restaurant layout <span class="bullet">·</span> Tables and door openings</p></div><span class="header-context"><svg class="icon" aria-hidden="true"><use href="#i-layers"/></svg> Layout editor</span></header>
+<div class="shell"><article class="editor"><div class="editor-head"><div class="editor-title"><span class="editor-symbol"><svg class="icon"><use href="#i-table"/></svg></span><div><h2>Restaurant Floor Plan Editor</h2><p class="sub">Arrange tables, add furniture from inventory and review saved layouts.</p></div></div><div class="venue-group"><label for="venue">Venue</label><span class="venue-picker"><svg class="icon" aria-hidden="true"><use href="#i-store"/></svg><select id="venue"><option value="VEN-001">Brussels Bistro (VEN-001)</option><option value="VEN-002">Demo Café (VEN-002)</option></select></span><span class="venue-chip"><svg class="icon"><use href="#i-shield"/></svg>Venue isolated</span></div></div>
+<div class="editor-grid"><aside class="sidebar"><h3>Tools</h3><button id="show-layout" class="active" aria-pressed="true" type="button"><svg class="icon"><use href="#i-move"/></svg>Edit Layout</button><button id="show-properties" aria-pressed="false" type="button"><svg class="icon"><use href="#i-table"/></svg>Table Properties</button><button id="show-revisions" aria-pressed="false" type="button"><svg class="icon"><use href="#i-clock"/></svg>Layout Revisions</button><button id="show-furniture" aria-pressed="false" type="button"><svg class="icon"><use href="#i-table"/></svg>Furniture</button><button id="reset" type="button"><svg class="icon"><use href="#i-reset"/></svg>Reset Layout</button><h3>Move Controls</h3><div class="controls"><span class="empty"></span><button data-step="up" aria-label="Move up"><svg class="icon"><use href="#i-arrow-up"/></svg></button><span class="empty"></span><button data-step="left" aria-label="Move left"><svg class="icon"><use href="#i-arrow-left"/></svg></button><button data-step="down" aria-label="Move down"><svg class="icon"><use href="#i-arrow-down"/></svg></button><button data-step="right" aria-label="Move right"><svg class="icon"><use href="#i-arrow-right"/></svg></button></div><p class="hint"><b>Arrow keys</b> move 1%. <b>Shift + arrow</b> moves 0.25%. Positions are bounded to the room.</p><div class="toggles"><label>Show boundaries <input id="bounds" type="checkbox" checked></label><label>Show grid <input id="grid" type="checkbox" checked></label></div></aside>
+<section class="workspace"><div id="room" class="room grid-on bounds-on" role="group" aria-label="Editable restaurant floor plan"><div class="guide"></div><div class="center-guide"></div><div class="horizontal-guide"></div><svg class="floor-doors" viewBox="0 0 1000 700" preserveAspectRatio="none" aria-hidden="true"><g fill="none" stroke="#778396" stroke-width="4" vector-effect="non-scaling-stroke"><path d="M440 0v108M440 108A108 108 0 0 0 548 0"/><path d="M440 700V590M440 590A110 110 0 0 1 550 700"/></g></svg></div><p id="status" role="status" aria-live="polite"></p></section>
+<aside class="properties" aria-label="Layout inspector">
+  <div class="side-tabs" role="tablist" aria-label="Inspector tabs"><button id="tab-properties" role="tab" aria-selected="true" aria-controls="property-view" type="button">Properties</button><button id="tab-revisions" role="tab" aria-selected="false" aria-controls="revision-view" type="button">Revisions</button><button id="tab-furniture" role="tab" aria-selected="false" aria-controls="furniture-view" type="button">Furniture</button></div>
+  <div id="property-view" role="tabpanel" aria-labelledby="tab-properties">
+    <div id="table-properties"><h3>Selected Table</h3><dl>
+    <div><dt><svg class="icon"><use href="#i-table"/></svg>Table ID</dt><dd id="p-id">T2</dd></div>
+    <div><dt><svg class="icon"><use href="#i-users"/></svg>Capacity</dt><dd id="p-seats">4 seats</dd></div>
+    <div><dt><svg class="icon"><use href="#i-position"/></svg>Position (x, y)</dt><dd id="p-pos">50%, 43%</dd></div>
+    <div><dt><svg class="icon"><use href="#i-dimensions"/></svg>Dimensions</dt><dd id="p-dim">2.20 × 1.20 m</dd></div>
+    <div><dt><svg class="icon"><use href="#i-layers"/></svg>Revision</dt><dd id="p-rev">v0</dd></div>
+    <div><dt><svg class="icon"><use href="#i-clock"/></svg>Last saved</dt><dd id="p-saved">Not yet</dd></div></dl>
+    <button id="remove-table" class="remove-table" type="button">Remove table from layout</button>
+    </div>
+    <div id="empty-properties" hidden>No table selected. Choose a table or open <b>Furniture</b> to place one.</div>
+    <div id="save-badge" class="saved warn"><svg class="icon"><use href="#i-info"/></svg>Browser draft · not yet saved</div>
+    <p class="hint">Removing a table only removes its floor-plan placement. The table remains in inventory.</p>
+  </div>
+  <div id="revision-view" role="tabpanel" aria-labelledby="tab-revisions" hidden>
+    <h3>Layout Revision History</h3><p class="hint">Snapshots saved in this browser for the selected venue. Restore creates a new revision; it does not delete history. No server sync.</p>
+    <div id="revision-list" class="revision-list"></div>
+  </div>
+  <div id="furniture-view" role="tabpanel" aria-labelledby="tab-furniture" hidden><h3>Furniture Inventory</h3><p class="inventory-hint">Drag an available table into the room, or use Place for keyboard and touch devices. Removed tables become available again.</p><div id="inventory-list" class="inventory-list"></div><p class="hint">Demo inventory: five predefined tables. Database integration is not yet connected.</p></div>
+</aside></div>
+<div class="footer"><span><svg class="icon"><use href="#i-info"/></svg>Local draft only</span><span><svg class="icon"><use href="#i-database"/></svg>Browser localStorage (if available)</span><span><svg class="icon"><use href="#i-layers"/></svg><b id="footer-rev">Revision v0</b></span><span><svg class="icon"><use href="#i-store"/></svg><b id="footer-venue">VEN-001</b></span><span>Demo inventory · No server sync</span></div></article></div>
+<script>
+'use strict';
+// Standalone browser-local demo: five seeded inventory records, NOT a live database API.
+const physical=Object.freeze([{id:'T1',seats:2,shape:'round',x:18,y:20},{id:'T2',seats:4,shape:'large',x:50,y:43},{id:'T3',seats:6,shape:'large',x:79,y:21},{id:'T4',seats:4,shape:'large',x:23,y:77},{id:'T5',seats:4,shape:'round',x:78,y:78}]);
+const $=id=>document.getElementById(id),room=$('room'),arrows={ArrowUp:[0,-1],ArrowDown:[0,1],ArrowLeft:[-1,0],ArrowRight:[1,0]};
+let venue='VEN-001',selected='T2',revision=0,savedAt='',positions={},history=[],drag=null,activeTab='properties',pendingPlacement=null;
+const key=()=> 'horeca-floor-design-v2:'+venue; // Backwards compatible with previous local drafts.
+const defaults=()=>Object.fromEntries(physical.map(t=>[t.id,{x:t.x,y:t.y}]));
+const clone=p=>Object.fromEntries(physical.filter(t=>Object.hasOwn(p,t.id)).map(t=>[t.id,{x:p[t.id].x,y:p[t.id].y}]));
+function validPositions(p){
+ return !!p&&typeof p==='object'&&!Array.isArray(p)&&Object.keys(p).every(id=>{
+  const v=p[id];return physical.some(t=>t.id===id)&&v&&Number.isFinite(v.x)&&Number.isFinite(v.y)&&v.x>=12&&v.x<=88&&v.y>=12&&v.y<=88;
+ });
+}
+function announce(m){$('status').textContent=m;}
+function read(){
+ positions=defaults();revision=0;savedAt='';history=[];pendingPlacement=null;
+ try{
+  const raw=localStorage.getItem(key());if(!raw)return;
+  const d=JSON.parse(raw);if(!d||!Number.isSafeInteger(d.revision)||d.revision<0||!validPositions(d.positions))return;
+  positions=clone(d.positions);revision=d.revision;savedAt=typeof d.savedAt==='string'?d.savedAt:'';
+  if(Array.isArray(d.history))history=d.history.filter(h=>h&&Number.isSafeInteger(h.revision)&&h.revision>=0&&h.revision<=revision&&validPositions(h.positions)&&typeof h.action==='string')
+   .slice(0,30).map(h=>({revision:h.revision,savedAt:typeof h.savedAt==='string'?h.savedAt:'',action:h.action.slice(0,100),positions:clone(h.positions)}));
+  if(!history.length)history=[{revision,savedAt,action:'Previous saved layout',positions:clone(positions)}];
+ }catch(e){announce('Browser storage is unavailable; changes are temporary.');}
+}
+function renderSaveBadge(message,warning=false){
+ const badge=$('save-badge');badge.className=warning?'saved warn':'saved';
+ badge.innerHTML='<svg class="icon" aria-hidden="true"><use href="'+(warning?'#i-info':'#i-check')+'"/></svg>';
+ badge.append(document.createTextNode(message));
+}
+function save(expected,action){
+ try{
+  const raw=localStorage.getItem(key()),latest=raw?JSON.parse(raw):null;
+  const current=latest&&Number.isSafeInteger(latest.revision)?latest.revision:0;
+  if(current!==expected){read();render();announce('Conflict: another browser tab updated this venue. Latest layout loaded.');return false;}
+  const next=expected+1,time=new Date().toLocaleString();
+  const nextHistory=[{revision:next,savedAt:time,action,positions:clone(positions)},...history].slice(0,30);
+  localStorage.setItem(key(),JSON.stringify({revision:next,savedAt:time,positions:clone(positions),history:nextHistory}));
+  revision=next;savedAt=time;history=nextHistory;renderSaveBadge('Saved in this browser · v'+revision);return true;
+ }catch(e){renderSaveBadge('Browser storage unavailable · unsaved',true);announce('Browser storage unavailable; this edit was not saved.');return false;}
+}
+function revisionList(){
+ const list=$('revision-list');list.replaceChildren();
+ const entries=history.length?history:[{revision:0,action:'Initial layout',savedAt:'Not yet saved',positions:defaults()}];
+ for(const [index,item] of entries.entries()){
+  const card=document.createElement('div');card.className='revision-card'+(item.revision===revision?' current':'');
+  const title=document.createElement('strong');title.className='revision-number';title.textContent='Revision v'+item.revision;
+  const action=document.createElement('span');action.textContent=item.action;
+  const when=document.createElement('small');when.textContent=item.savedAt||'Original browser draft';
+  card.append(title,action,when);
+  if(index===0&&item.revision===revision){const marker=document.createElement('small');marker.textContent='Current';card.append(marker);}
+  else{const btn=document.createElement('button');btn.type='button';btn.textContent='Restore this layout';btn.addEventListener('click',()=>restoreRevision(item));card.append(btn);}
+  list.append(card);
+ }
+}
+function switchTab(tab){
+ activeTab=tab;
+ for(const name of ['properties','revisions','furniture']){
+  const on=name===tab;$(name==='properties'?'property-view':name==='revisions'?'revision-view':'furniture-view').hidden=!on;
+  $('tab-'+name).setAttribute('aria-selected',String(on));
+ }
+ for(const [name,on] of [['show-layout',tab==='properties'],['show-properties',tab==='properties'],['show-revisions',tab==='revisions'],['show-furniture',tab==='furniture']]){
+  $(name).classList.toggle('active',on);$(name).setAttribute('aria-pressed',String(on));
+ }
+ if(tab==='revisions')revisionList();
+ if(tab==='furniture')renderInventory();
+}
+function restoreRevision(item){
+ if(!validPositions(item.positions))return;
+ const old=clone(positions),expected=revision;positions=clone(item.positions);
+ if(!save(expected,'Restored revision v'+item.revision)){if(revision===expected)positions=old;render();return;}
+ if(!positions[selected])selected=Object.keys(positions)[0]||null;
+ render();announce('Restored revision v'+item.revision+' as new revision v'+revision+'.');
+}
+function renderInventory(){
+ const list=$('inventory-list');list.replaceChildren();
+ for(const t of physical){
+  const pending=pendingPlacement?.id===t.id,placed=Object.hasOwn(positions,t.id)||pending,card=document.createElement('div');
+  card.className='inventory-card '+(placed?'placed':'available');card.draggable=!placed;
+  card.setAttribute('aria-label','Table '+t.id+', '+t.seats+' seats, '+(placed?'already on floor plan':'available'));
+  const top=document.createElement('div');top.className='inventory-top';
+  const ico=document.createElement('span');ico.className='inventory-icon';ico.innerHTML='<svg class="icon" aria-hidden="true"><use href="#i-table"/></svg>';
+  const detail=document.createElement('span');detail.className='inventory-detail';
+  const name=document.createElement('strong');name.textContent='Table '+t.id;
+  const desc=document.createElement('small');desc.textContent=t.seats+' seats · '+(t.shape==='round'?'Round':'Rectangular');
+  detail.append(name,desc);
+  const status=document.createElement('span');status.className='inventory-status'+(placed?' placed':'');status.textContent=pending?'Awaiting approval':placed?'On layout':'Available';
+  top.append(ico,detail,status);
+  const button=document.createElement('button');button.type='button';button.textContent=placed?'Already placed':'Place on layout';button.disabled=placed;
+  if(!placed){
+   button.addEventListener('click',()=>placeAt(t.id,t.x,t.y));
+   card.addEventListener('dragstart',e=>{if(positions[t.id]){e.preventDefault();return;}e.dataTransfer.effectAllowed='copy';e.dataTransfer.setData('application/x-horeca-table',t.id);e.dataTransfer.setData('text/plain',t.id);});
+  }
+  card.append(top,button);list.append(card);
+ }
+}
+function addPlacementAction(toolbar,id,kind){
+ const b=document.createElement('button');b.type='button';b.className='placement-action '+kind;
+ b.textContent=kind==='approve'?'✓':'×';
+ const label=kind==='approve'?'Confirm placement of table '+id:'Remove table '+id+' from the layout';
+ b.title=label;b.setAttribute('aria-label',label);
+ b.addEventListener('pointerdown',e=>e.stopPropagation());
+ b.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();if(kind==='approve')approvePlacement(id);else removeFromLayout(id,true);});
+ toolbar.append(b);
+}
+function render(){
+ if(selected&&!Object.hasOwn(positions,selected)&&pendingPlacement?.id!==selected)selected=null;
+ const ids=new Set([...Object.keys(positions),...(pendingPlacement?[pendingPlacement.id]:[])]);
+ for(const node of room.querySelectorAll('[data-placement-toolbar]'))node.remove();
+ for(const node of room.querySelectorAll('[data-table]'))if(!ids.has(node.dataset.table))node.remove();
+ for(const t of physical){
+  if(!ids.has(t.id))continue;
+  let b=room.querySelector('[data-table="'+t.id+'"]');
+  if(!b){
+   b=document.createElement('button');b.type='button';b.dataset.table=t.id;b.className='table '+t.shape;
+   b.innerHTML='<i class="chair chair-left" aria-hidden="true"></i><i class="chair chair-right" aria-hidden="true"></i><i class="handle handle-nw" aria-hidden="true"></i><i class="handle handle-ne" aria-hidden="true"></i><i class="handle handle-sw" aria-hidden="true"></i><i class="handle handle-se" aria-hidden="true"></i><span>'+t.id+'</span><small>'+t.seats+' seats</small>';
+   b.addEventListener('pointerdown',startDrag);b.addEventListener('click',()=>{selected=t.id;switchTab('properties');render();});b.addEventListener('keydown',onKey);room.append(b);
+  }
+  const pending=pendingPlacement?.id===t.id,p=pending?pendingPlacement:positions[t.id];
+  b.style.left=p.x+'%';b.style.top=p.y+'%';
+  b.classList.toggle('pending-placement',pending);
+  const toolbar=document.createElement('div');toolbar.dataset.placementToolbar=t.id;toolbar.className='placement-toolbar';
+  toolbar.style.setProperty('--table-x',p.x+'%');toolbar.style.setProperty('--table-y',p.y+'%');
+  toolbar.setAttribute('role','group');toolbar.setAttribute('aria-label','Actions for table '+t.id);
+  if(pending)addPlacementAction(toolbar,t.id,'approve');
+  addPlacementAction(toolbar,t.id,'remove');room.append(toolbar);
+  b.classList.toggle('selected',selected===t.id);b.setAttribute('aria-pressed',String(selected===t.id));
+  b.setAttribute('aria-label','Table '+t.id+', '+t.seats+' seats at '+p.x.toFixed(2)+'%, '+p.y.toFixed(2)+'%. Use arrows to move; Delete removes; Escape discards an unconfirmed placement.');
+ }
+ const t=physical.find(t=>t.id===selected),p=pendingPlacement?.id===selected?pendingPlacement:positions[selected];
+ $('table-properties').hidden=!t||!p;$('empty-properties').hidden=!!t&&!!p;
+ if(t&&p){
+  $('p-id').textContent=t.id;$('p-seats').textContent=t.seats+' seats';$('p-pos').textContent=p.x.toFixed(2)+'%, '+p.y.toFixed(2)+'%';
+  $('p-dim').textContent=t.shape==='round'?'1.20 × 1.20 m':'2.20 × 1.20 m';
+  $('p-rev').textContent='v'+revision;$('p-saved').textContent=pendingPlacement?.id===selected?'Awaiting approval':savedAt||'Not yet';
+ }
+ $('footer-rev').textContent='Revision v'+revision;$('footer-venue').textContent=venue;
+ if(pendingPlacement)renderSaveBadge('Placement pending · click the green check above the table',true);
+ else renderSaveBadge(!savedAt&&revision===0?'Browser draft · not yet saved':'Saved in this browser · v'+revision,!savedAt&&revision===0);
+ if(activeTab==='revisions')revisionList();
+ renderInventory();
+}
+function placeAt(id,x,y){
+ const t=physical.find(t=>t.id===id);
+ if(!t||Object.hasOwn(positions,id)||!Number.isFinite(x)||!Number.isFinite(y))return false;
+ if(pendingPlacement){announce('Confirm or discard the pending table before placing another.');return false;}
+ const nx=Math.max(12,Math.min(88,Math.round(x*100)/100)),ny=Math.max(12,Math.min(88,Math.round(y*100)/100));
+ pendingPlacement={id,x:nx,y:ny};
+ selected=id;render();announce('Table '+id+' is a preview. Click the green check above it to confirm placement, or press Escape to discard.');
+ return true;
+}
+function approvePlacement(id){
+ if(!pendingPlacement||pendingPlacement.id!==id||Object.hasOwn(positions,id))return false;
+ const preview=pendingPlacement,old=clone(positions),expected=revision;
+ pendingPlacement=null;positions[id]={x:preview.x,y:preview.y};
+ if(!save(expected,'Placed '+id)){
+  if(revision===expected){positions=old;pendingPlacement=preview;}
+  render();return false;
+ }
+ selected=id;render();announce('Table '+id+' placement confirmed and saved.');
+ return true;
+}
+function removeFromLayout(id,skipPrompt=false){
+ if(pendingPlacement?.id===id){
+  pendingPlacement=null;selected=Object.keys(positions)[0]||null;
+  render();announce('Unconfirmed table '+id+' discarded. No layout change saved.');return true;
+ }
+ if(!Object.hasOwn(positions,id))return false;
+ if(!skipPrompt&&!confirm('Remove table '+id+' from the floor plan? It remains in Furniture inventory.'))return false;
+ const old=clone(positions),expected=revision;delete positions[id];
+ if(!save(expected,'Removed '+id)){if(revision===expected)positions=old;render();return false;}
+ selected=Object.keys(positions)[0]||null;render();
+ announce('Table '+id+' removed from layout and available in Furniture.');
+ return true;
+}
+function move(id,x,y){
+ const preview=pendingPlacement?.id===id,position=preview?pendingPlacement:positions[id];
+ if(!position||!Number.isFinite(x)||!Number.isFinite(y))return false;
+ const nx=Math.max(12,Math.min(88,Math.round(x*100)/100)),ny=Math.max(12,Math.min(88,Math.round(y*100)/100));
+ if(nx===position.x&&ny===position.y)return false;
+ if(preview){pendingPlacement={...pendingPlacement,x:nx,y:ny};render();return true;}
+ const old=clone(positions),expected=revision;positions[id]={x:nx,y:ny};
+ if(!save(expected,'Moved '+id)){if(revision===expected)positions=old;render();return false;}
+ render();return true;
+}
+function onKey(e){
+ if(e.key==='Escape'&&pendingPlacement?.id===e.currentTarget.dataset.table){
+  e.preventDefault();removeFromLayout(e.currentTarget.dataset.table,true);
+  const next=selected&&room.querySelector('[data-table="'+selected+'"]');
+  if(next)next.focus();
+  return;
+ }
+ if(e.key==='Delete'||e.key==='Backspace'){e.preventDefault();removeFromLayout(e.currentTarget.dataset.table);return;}
+ if(!arrows[e.key])return;
+ e.preventDefault();selected=e.currentTarget.dataset.table;
+ const p=pendingPlacement?.id===selected?pendingPlacement:positions[selected],d=arrows[e.key],step=e.shiftKey?.25:1;
+ move(selected,p.x+d[0]*step,p.y+d[1]*step);
+ const node=room.querySelector('[data-table="'+selected+'"]');if(node)node.focus();
+}
+function startDrag(e){
+ if(e.button!==0||drag)return;
+ selected=e.currentTarget.dataset.table;
+ const r=room.getBoundingClientRect(),p=pendingPlacement?.id===selected?pendingPlacement:positions[selected];if(!p)return;
+ drag={id:selected,node:e.currentTarget,pointer:e.pointerId,revision,pending:pendingPlacement?.id===selected,startX:e.clientX,startY:e.clientY,x:p.x,y:p.y,width:r.width,height:r.height};
+ e.currentTarget.setPointerCapture(e.pointerId);e.currentTarget.addEventListener('pointermove',dragMove);
+ e.currentTarget.addEventListener('pointerup',endDrag,{once:true});
+ e.currentTarget.addEventListener('pointercancel',cancelDrag,{once:true});
+ e.currentTarget.addEventListener('lostpointercapture',lostDragCapture,{once:true});switchTab('properties');render();
+}
+function dragMove(e){
+ if(!drag||drag.pointer!==e.pointerId)return;
+ const x=Math.max(12,Math.min(88,drag.x+(e.clientX-drag.startX)/drag.width*100)),y=Math.max(12,Math.min(88,drag.y+(e.clientY-drag.startY)/drag.height*100));
+ if(drag.pending&&pendingPlacement?.id===drag.id)pendingPlacement={...pendingPlacement,x:Math.round(x*100)/100,y:Math.round(y*100)/100};
+ else positions[drag.id]={x:Math.round(x*100)/100,y:Math.round(y*100)/100};
+ render();
+}
+function cleanupDrag(d){
+ if(!d)return;
+ const node=d.node;
+ node.removeEventListener('pointermove',dragMove);
+ node.removeEventListener('pointerup',endDrag);
+ node.removeEventListener('pointercancel',cancelDrag);
+ node.removeEventListener('lostpointercapture',lostDragCapture);
+ if(node.hasPointerCapture(d.pointer))node.releasePointerCapture(d.pointer);
+}
+function endDrag(e){
+ if(!drag||drag.pointer!==e.pointerId)return;
+ const d=drag;drag=null;cleanupDrag(d);
+ if(revision!==d.revision){render();announce('Drag cancelled: the layout revision changed.');return;}
+ if(d.pending){render();announce('Preview moved. Click the green check to confirm placement.');return;}
+ const p=positions[d.id];if(p&&(p.x!==d.x||p.y!==d.y)){
+  const expected=revision;
+  if(!save(expected,'Dragged '+d.id)&&revision===expected)positions[d.id]={x:d.x,y:d.y};
+ }
+ render();
+}
+function lostDragCapture(e){
+ // Lost capture without pointerup/cancel means the gesture cannot safely commit.
+ cancelDrag(e);
+}
+function cancelDrag(e){
+ if(!drag||drag.pointer!==e.pointerId)return;
+ const d=drag;drag=null;cleanupDrag(d);
+ // A storage event may already have loaded a newer revision: never restore stale coordinates.
+ if(revision===d.revision){
+  if(d.pending&&pendingPlacement?.id===d.id)pendingPlacement={...pendingPlacement,x:d.x,y:d.y};
+  else if(!d.pending)positions[d.id]={x:d.x,y:d.y};
+ }
+ render();
+}
+for(const b of document.querySelectorAll('[data-step]'))b.addEventListener('click',()=>{
+ if(!selected||!positions[selected]&&pendingPlacement?.id!==selected){announce('Select a table first.');return;}
+ const d={up:[0,-1],down:[0,1],left:[-1,0],right:[1,0]}[b.dataset.step],p=pendingPlacement?.id===selected?pendingPlacement:positions[selected];move(selected,p.x+d[0],p.y+d[1]);
+});
+room.addEventListener('dragover',e=>{
+ if(!Array.from(e.dataTransfer.types||[]).includes('application/x-horeca-table'))return;
+ e.preventDefault();e.dataTransfer.dropEffect='copy';room.classList.add('inventory-drop');
+});
+room.addEventListener('dragleave',e=>{if(!room.contains(e.relatedTarget))room.classList.remove('inventory-drop');});
+room.addEventListener('drop',e=>{
+ room.classList.remove('inventory-drop');const id=e.dataTransfer.getData('application/x-horeca-table');
+ if(!physical.some(t=>t.id===id))return;
+ e.preventDefault();const r=room.getBoundingClientRect();placeAt(id,(e.clientX-r.left)/r.width*100,(e.clientY-r.top)/r.height*100);
+});
+document.addEventListener('dragend',()=>room.classList.remove('inventory-drop'));
+$('remove-table').addEventListener('click',()=>{if(selected)removeFromLayout(selected);});
+$('venue').addEventListener('change',e=>{if(drag){const pending=drag;drag=null;cleanupDrag(pending);}pendingPlacement=null;venue=e.target.value;selected='T2';read();switchTab('properties');render();announce('Switched venue to '+venue+'.');});
+$('reset').addEventListener('click',()=>{
+ if(!confirm('Reset this venue to all five original table placements?'))return;
+ const old=clone(positions),expected=revision;positions=defaults();selected='T2';
+ if(!save(expected,'Reset table placements')){if(revision===expected)positions=old;}
+ else pendingPlacement=null;
+ render();announce('Default table placements restored for '+venue+'.');
+});
+$('grid').addEventListener('change',e=>room.classList.toggle('grid-on',e.target.checked));
+$('bounds').addEventListener('change',e=>room.classList.toggle('bounds-on',e.target.checked));
+$('show-layout').addEventListener('click',()=>{switchTab('properties');render();const node=selected&&room.querySelector('[data-table="'+selected+'"]');if(node)node.focus();});
+$('show-properties').addEventListener('click',()=>switchTab('properties'));
+$('show-revisions').addEventListener('click',()=>switchTab('revisions'));
+$('show-furniture').addEventListener('click',()=>switchTab('furniture'));
+$('tab-properties').addEventListener('click',()=>switchTab('properties'));
+$('tab-revisions').addEventListener('click',()=>switchTab('revisions'));
+$('tab-furniture').addEventListener('click',()=>switchTab('furniture'));
+window.addEventListener('storage',e=>{if(e.key===key()){
+ // Invalidate the in-progress pointer gesture before reading the other tab's saved state.
+ if(drag){const pending=drag;drag=null;cleanupDrag(pending);}
+ read();render();announce('Layout updated from another browser tab; pending drag cancelled.');
+}});
+read();switchTab('properties');render();announce('Select a table or open Furniture to place an available one.');
+</script></body></html>
