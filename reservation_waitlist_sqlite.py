@@ -52,3 +52,41 @@ def enroll(conn: sqlite3.Connection, *, venue_id: str, request_id: str,
     except BaseException:
         conn.rollback()
         raise
+
+
+def withdraw(conn: sqlite3.Connection, *, venue_id: str, request_id: str) -> bool:
+    """Atomically withdraw an entry; replay returns False; missing ID conflicts.
+
+    The caller MUST authorize venue_id. No booking or guest message is created.
+    """
+    if not isinstance(venue_id, str) or not venue_id.strip():
+        raise ValueError('venue required')
+    if not isinstance(request_id, str) or not request_id.strip():
+        raise ValueError('request required')
+    if conn.in_transaction:
+        raise ValueError('connection already in transaction')
+    conn.execute('BEGIN IMMEDIATE')
+    try:
+        row = conn.execute(
+            'SELECT status FROM reservation_waitlist WHERE venue_id=? AND request_id=?',
+            (venue_id, request_id),
+        ).fetchone()
+        if row is None:
+            raise WaitlistConflict('request not found in authorized venue')
+        if row[0] == 'withdrawn':
+            conn.commit()
+            return False
+        if row[0] != 'waiting':
+            raise WaitlistConflict('unsupported waitlist state')
+        changed = conn.execute(
+            "UPDATE reservation_waitlist SET status='withdrawn' "
+            "WHERE venue_id=? AND request_id=? AND status='waiting'",
+            (venue_id, request_id),
+        ).rowcount
+        if changed != 1:
+            raise WaitlistConflict('withdrawal race')
+        conn.commit()
+        return True
+    except BaseException:
+        conn.rollback()
+        raise
