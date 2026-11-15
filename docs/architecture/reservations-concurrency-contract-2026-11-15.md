@@ -2,7 +2,7 @@
 
 **Date:** 2026-11-15 (Europe/Brussels)  
 **Status:** Design-only, not implemented or production verified.  
-**Scope:** One venue's physical-table reservation availability and atomic booking. This is an independent specification because the reachable `develop` branch contains only the repository initialization README; no recovered application code or runnable tests were available.
+**Scope:** Cross-module integration checklist for atomic reservations and seating. GitHub `develop` already contains reservation reference implementations, tests and earlier contracts; this document is not the first reservation specification. Existing code was identified through the remote branch comparison, but not executed or integrated in this run.
 
 ## Domain and trust boundaries
 
@@ -55,10 +55,10 @@ The server repeats all availability and authorization checks **inside one databa
 
 ## Integration dependencies and release gate
 
-1. Recover and verify the actual HORECA app, migrations and test harness before integrating this contract; do not assume prior ZIP sprint output exists in GitHub.
+1. Review and run the existing `reservation_modify_sqlite.py`, `reservation_cancel_sqlite.py`, `reservation_seating_conflict.py`, `test_reservation_modify_independent_connections.py`, and `test_reservation_atomic_booking_20261115.py` before extending code. Confirm the same table-locking protocol is shared by reservations and seating. Prior documentation and tests are present in `develop`, but their results were not re-verified in this run.
 2. Introduce venue-scoped schema, physical table inventory and transaction-locking convention shared with seating.
 3. Implement repository/API operations and the 14 synthetic acceptance tests, including true parallel database transactions (not just sequential mocks).
 4. Verify tenant isolation, capacity and race conditions against the target database engine before exposing any endpoint.
 5. No deployment, live guests, communications, payment activation or paid services. Budget: **€0 additional spend**.
 
-**Completion record:** This increment documents the reservation conflict/concurrency contract only. It does not claim working reservations, tests, a deployed API or recovered source.
+**Completion record:** This increment adds a cross-module race/tenant acceptance checklist (R01–R14). Existing reference modules and tests were discovered, not executed. It does not claim a new working booking API, passed tests or deployment.
