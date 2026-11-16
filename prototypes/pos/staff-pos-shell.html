@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>HORECA | Staff POS</title>
+<style>
+:root{font:16px system-ui,sans-serif;color:#172b30;background:#f4f7f5}*{box-sizing:border-box}body{margin:0}header{background:#143d36;color:white;padding:1.2rem;display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap}h1{font-size:1.3rem;margin:0}header p{color:#d3e8df}nav{display:flex;gap:.5rem;overflow-x:auto;background:white;padding:.8rem;border-bottom:1px solid #ccd8d1}button{font:inherit;min-height:48px;padding:.65rem 1.1rem;border-radius:.65rem;border:1px solid #aabdb3;background:white;cursor:pointer;white-space:nowrap}button[aria-selected=true]{background:#155b48;color:white}button:focus-visible{outline:3px solid #ffab35;outline-offset:2px}main{max-width:1200px;margin:auto;padding:1.5rem}section[hidden]{display:none}.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:1rem}.card{background:white;padding:1.25rem;border:1px solid #d0ddd6;border-radius:1rem}.muted{color:#536a60}.pill{display:inline-block;background:#e6f1e9;padding:.2rem .6rem;border-radius:1rem}.occupied{background:#fff0df}footer{padding:1rem;color:#52665c}@media(max-width:600px){main{padding:1rem}}
+</style></head><body>
+<header><div><h1>HORECA · Staff POS</h1><p>Fictional Bistro Noord · Tablet prototype</p></div><strong>OFFLINE · SYNTHETIC DATA</strong></header>
+<nav role="tablist" aria-label="Staff POS sections">
+<button type="button" role="tab" id="tab-tables" aria-controls="panel-tables" aria-selected="true" tabindex="0">Tables</button>
+<button type="button" role="tab" id="tab-orders" aria-controls="panel-orders" aria-selected="false" tabindex="-1">Orders</button>
+<button type="button" role="tab" id="tab-menu" aria-controls="panel-menu" aria-selected="false" tabindex="-1">Menu</button>
+<button type="button" role="tab" id="tab-kitchen" aria-controls="panel-kitchen" aria-selected="false" tabindex="-1">Kitchen / Bar</button>
+</nav><main>
+<section role="tabpanel" id="panel-tables" aria-labelledby="tab-tables" tabindex="0"><h2>Tables</h2><p class="muted">Physical inventory preview. Seating actions require verified venue-scoped service integration.</p><div class="cards"><article class="card"><h3>Table 1</h3><p>2 physical seats</p><span class="pill">Available</span></article><article class="card"><h3>Table 2</h3><p>4 physical seats</p><span class="pill">Available</span></article><article class="card"><h3>Table 3</h3><p>6 physical seats</p><span class="pill occupied">Occupied · 3 guests (fixture)</span></article></div></section>
+<section role="tabpanel" id="panel-orders" aria-labelledby="tab-orders" tabindex="0" hidden><h2>Orders</h2><div class="card"><h3>Order entry</h3><p>Not connected yet. No orders can be submitted.</p></div></section>
+<section role="tabpanel" id="panel-menu" aria-labelledby="tab-menu" tabindex="0" hidden><h2>Menu</h2><div class="cards"><article class="card"><h3>Food</h3><p>Fictional products to follow.</p></article><article class="card"><h3>Drinks</h3><p>Fictional products to follow.</p></article><article class="card"><h3>Favourites</h3><p>Popular and manually pinned products to follow.</p></article></div></section>
+<section role="tabpanel" id="panel-kitchen" aria-labelledby="tab-kitchen" tabindex="0" hidden><h2>Kitchen / Bar</h2><div class="card"><h3>Preparation queues</h3><p>Offline ticket routing to follow.</p></div></section>
+</main><footer>Prototype only · No authentication, live backend, payments, guest messages or deployment. Do not enter personal data.</footer>
+<script>
+'use strict';
+const tabs=Array.from(document.querySelectorAll('[role="tab"]'));
+function activate(tab,focus=false){
+ if(!tabs.includes(tab))return;
+ for(const item of tabs){
+  const active=item===tab;
+  item.setAttribute('aria-selected',String(active));
+  item.tabIndex=active?0:-1;
+  document.getElementById(item.getAttribute('aria-controls')).hidden=!active;
+ }
+ if(focus)tab.focus();
+}
+for(const tab of tabs){
+ tab.addEventListener('click',()=>activate(tab));
+ tab.addEventListener('keydown',event=>{
+  let index=tabs.indexOf(tab);
+  if(event.key==='ArrowRight')index=(index+1)%tabs.length;
+  else if(event.key==='ArrowLeft')index=(index+tabs.length-1)%tabs.length;
+  else if(event.key==='Home')index=0;
+  else if(event.key==='End')index=tabs.length-1;
+  else return;
+  event.preventDefault();activate(tabs[index],true);
+ });
+}
+</script></body></html>
