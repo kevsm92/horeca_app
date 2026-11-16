@@ -20,5 +20,5 @@ BEFORE DELETE ON reservation_no_show_audit BEGIN SELECT RAISE(ABORT, 'audit immu
 """
 
 def install(conn):
-    """Install audit schema on a caller-owned connection; no implicit commit."""
+    """Install schema; sqlite3.executescript may commit a pending transaction."""
     conn.executescript(SCHEMA)
