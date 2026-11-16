@@ -17,7 +17,7 @@ def mark_no_show(conn, *, venue_id, reservation_id, expected_revision,
                  scheduled_utc, now_utc, grace_minutes, staff_confirmed):
     """Confirmed -> no_show only after grace and explicit staff confirmation.
 
-    scheduled_utc MUST come from the trusted booking, not guest input.
+    scheduled_utc must match the persisted booking under the write lock.
     Schema must permit no_show status; this function does not migrate it.
     """
     if any(not isinstance(v, str) or not v.strip() for v in (venue_id, reservation_id)):
@@ -28,12 +28,23 @@ def mark_no_show(conn, *, venue_id, reservation_id, expected_revision,
         raise ValueError("invalid grace")
     if staff_confirmed is not True:
         raise NoShowConflict("staff confirmation required")
-    if _utc(now_utc) < _utc(scheduled_utc) + timedelta(minutes=grace_minutes):
-        raise NoShowConflict("grace period not elapsed")
+    scheduled = _utc(scheduled_utc)
+    now = _utc(now_utc)
     if conn.in_transaction:
         raise ValueError("connection already in transaction")
     conn.execute("BEGIN IMMEDIATE")
     try:
+        row = conn.execute("SELECT scheduled_utc FROM reservations WHERE id=? AND venue_id=? AND status='confirmed' AND revision=?", (reservation_id, venue_id, expected_revision)).fetchone()
+        if row is None:
+            raise NoShowConflict("not found, stale or non-confirmed")
+        try:
+            persisted = _utc(row[0])
+        except ValueError:
+            raise NoShowConflict("invalid persisted schedule") from None
+        if persisted != scheduled:
+            raise NoShowConflict("stale booking schedule")
+        if now < persisted + timedelta(minutes=grace_minutes):
+            raise NoShowConflict("grace period not elapsed")
         cur = conn.execute(
             "UPDATE reservations SET status='no_show', revision=revision+1 "
             "WHERE id=? AND venue_id=? AND status='confirmed' AND revision=?",
