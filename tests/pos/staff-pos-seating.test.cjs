@@ -8,7 +8,7 @@ const match=html.match(/const demoVenue='bistro-noord-fictional';([\s\S]*?)funct
 if(!match)throw new Error('Offline seating domain logic missing');
 function fixture(){
  const sandbox={};
- vm.runInNewContext("const demoVenue='bistro-noord-fictional';"+match[1]+";globalThis.seatDemoTable=seatDemoTable;globalThis.physicalTables=physicalTables;",sandbox,{timeout:1000});
+ const physical=match[1].match(/const physicalTables=\[[\s\S]*?\];/);\n const seating=match[1].match(/function seatDemoTable\([\s\S]*?\n}/);\n if(!physical||!seating)throw new Error('Seating implementation not found');\n vm.runInNewContext("const demoVenue='bistro-noord-fictional';"+physical[0]+seating[0]+";globalThis.seatDemoTable=seatDemoTable;globalThis.physicalTables=physicalTables;",sandbox,{timeout:1000});
  return sandbox;
 }
 test('valid seating changes one available physical table',()=>{
