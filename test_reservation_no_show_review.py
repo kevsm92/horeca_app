@@ -27,6 +27,17 @@ class ReviewTests(unittest.TestCase):
     def test_order(self):
         self.assertEqual([x["reservation_id"] for x in self.review([booking("z"), booking("a")])], ["a", "z"])
 
+    def test_duplicate_confirmed_ids_fail_closed_even_if_future(self):
+        with self.assertRaisesRegex(ValueError, "duplicate reservation"):
+            self.review([booking("same"), booking("same", time="2026-11-16T20:00:00+00:00")])
+
+    def test_other_venue_duplicate_id_is_not_a_collision(self):
+        self.assertEqual(len(self.review([booking("same"), booking("same", venue="b")])), 1)
+
+    def test_invalid_future_booking_fails_closed(self):
+        with self.assertRaisesRegex(ValueError, "invalid trusted booking"):
+            self.review([booking("future", time="2026-11-16T20:00:00+00:00", revision=True)])
+
     def test_reject_invalid(self):
         for now in ["2026-11-16T18:00:00", "2026-11-16T19:00:00+01:00"]:
             with self.assertRaises(ValueError):

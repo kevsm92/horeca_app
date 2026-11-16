@@ -25,15 +25,19 @@ def review_candidates(*, venue_id, reservations, now_utc, grace_minutes):
         raise ValueError("invalid grace")
     now = _utc(now_utc)
     result = []
+    seen = set()
     for item in reservations:
         if item["venue_id"] != venue_id or item["status"] != "confirmed":
-            continue
-        scheduled = _utc(item["scheduled_utc"])
-        if now < scheduled + timedelta(minutes=grace_minutes):
             continue
         if (type(item["id"]) is not str or not item["id"].strip()
                 or type(item["revision"]) is not int or item["revision"] < 0):
             raise ValueError("invalid trusted booking")
+        if item["id"] in seen:
+            raise ValueError("duplicate reservation ID in review snapshot")
+        seen.add(item["id"])
+        scheduled = _utc(item["scheduled_utc"])
+        if now < scheduled + timedelta(minutes=grace_minutes):
+            continue
         result.append({"reservation_id": item["id"], "expected_revision": item["revision"],
                        "scheduled_utc": scheduled.isoformat(), "staff_review_required": True})
     return sorted(result, key=lambda x: (x["scheduled_utc"], x["reservation_id"]))
