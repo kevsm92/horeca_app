@@ -70,11 +70,15 @@ def create_offer(conn, *, venue_id, offer_id, request_id, table_id,
             (venue_id, request_id)).fetchone()
         if waiting is None:
             raise OfferConflict("request not waiting in authorized venue")
-        conflict = conn.execute(
-            "SELECT 1 FROM waitlist_offers WHERE venue_id=? AND status='offered' "
-            "AND expires_utc>? AND (table_id=? OR request_id=?) LIMIT 1",
-            (venue_id, created.isoformat(), table_id, request_id)).fetchone()
-        if conflict:
+        # Fractional-second UTC ISO strings are not always lexicographically
+        # time-ordered (e.g. 18:15:00.5 vs 18:15:00+00:00).
+        # Compare parsed instants under the BEGIN IMMEDIATE writer lock.
+        candidates = conn.execute(
+            "SELECT expires_utc FROM waitlist_offers "
+            "WHERE venue_id=? AND status='offered' "
+            "AND (table_id=? OR request_id=?)",
+            (venue_id, table_id, request_id)).fetchall()
+        if any(_utc(row[0]) > created for row in candidates):
             raise OfferConflict("active table or request offer exists")
         conn.execute(
             "INSERT INTO waitlist_offers "
