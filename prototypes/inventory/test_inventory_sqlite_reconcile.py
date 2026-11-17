@@ -81,5 +81,35 @@ class SQLiteReconciliationTests(unittest.TestCase):
         self.assertFalse(self.db.in_transaction)
 
 
+    def test_wal_writer_does_not_change_reconciliation_snapshot(self):
+        """A second connection commits between reader queries; reader stays consistent."""
+        import os
+        import tempfile
+        with tempfile.TemporaryDirectory() as directory:
+            filename = os.path.join(directory, 'inventory.sqlite3')
+            reader = sqlite3.connect(filename, isolation_level=None)
+            writer = sqlite3.connect(filename, isolation_level=None)
+            try:
+                reader.execute('PRAGMA journal_mode=WAL')
+                initialize(reader)
+                add_ingredient(reader, 'north', 'flour', 'Flour', 'g')
+                post_event(reader, 'north', 'flour', 'initial', 10, 'receipt')
+                triggered = []
+                def on_query(sql):
+                    if ('FROM stock_events' in sql and not triggered):
+                        triggered.append(True)
+                        post_event(writer, 'north', 'flour', 'concurrent', 7, 'receipt')
+                reader.set_trace_callback(on_query)
+                self.assertEqual(reconcile_sqlite(reader, 'north'), {'flour': 10})
+                reader.set_trace_callback(None)
+                self.assertEqual(len(triggered), 1)
+                self.assertFalse(reader.in_transaction)
+                self.assertEqual(reconcile_sqlite(reader, 'north'), {'flour': 17})
+            finally:
+                reader.set_trace_callback(None)
+                writer.close()
+                reader.close()
+
+
 if __name__ == '__main__':
     unittest.main()
