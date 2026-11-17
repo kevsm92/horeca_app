@@ -1,0 +1,11 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {loadMenu,parseMenuResponse} from '../src/menuClient.js';
+const item={item_id:'demo-food-1',kind:'food',name:'Fictional Soup',price_cents:650,available:true,description:'Synthetic'};
+const response=(status=200,items=[item],type='application/json; charset=utf-8')=>({status,ok:status>=200&&status<300,headers:{get:()=>type},json:async()=>({items})});
+test('maps Python SQLite menu contract to typed client records',()=>{assert.deepEqual(parseMenuResponse({items:[item]}),[{id:'demo-food-1',kind:'food',name:'Fictional Soup',priceCents:650,available:true,description:'Synthetic'}]);});
+test('authenticated same-origin read has no venue override',async()=>{let args;const items=await loadMenu({fetchImpl:async(...a)=>{args=a;return response();},kind:'food'});assert.equal(args[0],'/api/v1/menu-items?kind=food');assert.equal(args[1].method,'GET');assert.equal(args[1].credentials,'same-origin');assert.equal(args[1].redirect,'error');assert.equal(items.length,1);});
+test('fails closed on unauthorized or unavailable response',async()=>{for(const status of [401,403,404,503])await assert.rejects(loadMenu({fetchImpl:async()=>response(status)}),e=>e.code===(status<404?'AUTH':'UNAVAILABLE'));});
+test('rejects malformed menu records and duplicates',()=>{for(const bad of [{...item,price_cents:1.5},{...item,available:1},{...item,item_id:'../bad'},{...item,kind:'other'},{...item,name:''},{...item,price_cents:-1}])assert.throws(()=>parseMenuResponse({items:[bad]}));assert.throws(()=>parseMenuResponse({items:[item,item]}));});
+test('rejects HTML, invalid filters and missing items',async()=>{await assert.rejects(loadMenu({fetchImpl:async()=>response(200,[item],'text/html')}),/not JSON/);await assert.rejects(loadMenu({kind:'venue=other',fetchImpl:async()=>response()}),/filter/);assert.throws(()=>parseMenuResponse({}));});
+test('supports empty catalog and abort propagation',async()=>{assert.deepEqual(await loadMenu({fetchImpl:async()=>response(200,[])}),[]);const c=new AbortController();c.abort();await assert.rejects(loadMenu({signal:c.signal,fetchImpl:async(_url,{signal})=>{if(signal.aborted)throw new Error('aborted');}}),/aborted/);});
