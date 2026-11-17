@@ -9,11 +9,27 @@ def reconcile_sqlite(db, venue_id):
     """Compare ordered stock events to SQL aggregates, including zero-stock items.
 
     Returns ingredient_id -> integer balance. Raises ValueError on discrepancies.
-    Caller should provide a stable SQLite snapshot/transaction if concurrent
-    writers are possible; this function never starts or commits transactions.
+    When called outside a transaction, starts a read transaction to keep the
+    ingredient, event, and aggregate queries on one SQLite snapshot. Existing
+    caller transactions remain caller-owned.
     """
     if not isinstance(venue_id, str) or not venue_id:
         raise ValueError("invalid venue")
+    owns_transaction = not db.in_transaction
+    if owns_transaction:
+        db.execute('BEGIN')
+    try:
+        result = _reconcile_snapshot(db, venue_id)
+        if owns_transaction:
+            db.commit()
+        return result
+    except BaseException:
+        if owns_transaction:
+            db.rollback()
+        raise
+
+
+def _reconcile_snapshot(db, venue_id):
     ingredients = {
         row[0] for row in db.execute(
             "SELECT ingredient_id FROM ingredients WHERE venue_id=?", (venue_id,)
