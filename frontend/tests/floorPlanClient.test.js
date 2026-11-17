@@ -1,0 +1,10 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {loadFloorPlan} from '../src/floorPlanClient.js';
+const payload={revision:2,tables:[{id:'T1',physical_seats:4,occupied_guests:1}],placements:[{table_id:'T1',x_percent:25,y_percent:35}]};
+const response=(status,body=payload,contentType='application/json')=>({status,ok:status>=200&&status<300,headers:{get:()=>contentType},json:async()=>body});
+test('same-origin read with no venue override or writes',async()=>{let args;const data=await loadFloorPlan({fetchImpl:async(...a)=>{args=a;return response(200)}});assert.equal(args[0],'/api/v1/floor-plan');assert.deepEqual(args[1],{method:'GET',credentials:'same-origin',redirect:'error',headers:{Accept:'application/json'},signal:undefined});assert.equal(data.tables[0].seats,4);});
+test('401 and 403 never fall back to synthetic occupancy as real data',async()=>{for(const status of [401,403])await assert.rejects(loadFloorPlan({fetchImpl:async()=>response(status)}),e=>e.code==='AUTH');});
+test('404 and 503 fail closed',async()=>{for(const status of [404,503])await assert.rejects(loadFloorPlan({fetchImpl:async()=>response(status)}),e=>e.code==='UNAVAILABLE');});
+test('rejects HTML login redirects and malformed JSON contracts',async()=>{await assert.rejects(loadFloorPlan({fetchImpl:async()=>response(200,payload,'text/html')}),/not JSON/);await assert.rejects(loadFloorPlan({fetchImpl:async()=>response(200,{revision:0,tables:[],placements:[{table_id:'T1',x_percent:20,y_percent:20}]})}),/Invalid/);});
+test('propagates abort for navigation cancellation',async()=>{const controller=new AbortController();controller.abort();await assert.rejects(loadFloorPlan({signal:controller.signal,fetchImpl:async(_u,{signal})=>{if(signal.aborted)throw new DOMException('Aborted','AbortError');}}),e=>e.name==='AbortError');});
