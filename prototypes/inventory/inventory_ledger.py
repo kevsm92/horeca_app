@@ -49,6 +49,8 @@ def post_event(db,venue,ingredient,event,delta,reason):
     venue,ingredient,event=map(ident,(venue,ingredient,event))
     if type(delta) is not int or delta==0 or abs(delta)>10**12 or reason not in {'receipt','use','waste','correction'}:
         raise ValueError('invalid stock event')
+    if (reason=='receipt' and delta<0) or (reason in {'use','waste'} and delta>0):
+        raise ValueError('stock movement sign does not match reason')
     db.execute('BEGIN IMMEDIATE')
     try:
         old=db.execute('SELECT ingredient_id,delta,reason FROM stock_events WHERE venue_id=? AND event_id=?',(venue,event)).fetchone()
@@ -106,6 +108,21 @@ class LedgerTests(unittest.TestCase):
         for delta in (0,1.5,True,10**13):
             with self.assertRaises(ValueError):
                 post_event(self.db,'a','flour','bad',delta,'receipt')
+    def test_reason_sign_rejected_without_ledger_mutation(self):
+        for event,delta,reason in [('bad-receipt',-1,'receipt'),
+                                   ('bad-use',1,'use'),('bad-waste',1,'waste')]:
+            with self.assertRaises(ValueError):
+                post_event(self.db,'a','flour',event,delta,reason)
+        self.assertEqual(balance(self.db,'a','flour'),0)
+        self.assertEqual(self.db.execute('SELECT COUNT(*) FROM stock_events').fetchone()[0],0)
+
+    def test_valid_signs_and_correction_unchanged(self):
+        self.assertTrue(post_event(self.db,'a','flour','r',10,'receipt'))
+        self.assertTrue(post_event(self.db,'a','flour','u',-2,'use'))
+        self.assertTrue(post_event(self.db,'a','flour','w',-1,'waste'))
+        self.assertTrue(post_event(self.db,'a','flour','c',1,'correction'))
+        self.assertEqual(balance(self.db,'a','flour'),8)
+
     def test_event_ids_venue_scoped(self):
         post_event(self.db,'a','flour','r',10,'receipt')
         post_event(self.db,'b','flour','r',20,'receipt')
