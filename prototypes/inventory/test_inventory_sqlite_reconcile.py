@@ -54,5 +54,32 @@ class SQLiteReconciliationTests(unittest.TestCase):
             reconcile_sqlite(self.db, 'north')
 
 
+    def test_reconciliation_closes_its_own_read_transaction(self):
+        post_event(self.db, 'north', 'flour', 'r', 5, 'receipt')
+        self.assertFalse(self.db.in_transaction)
+        self.assertEqual(reconcile_sqlite(self.db, 'north')['flour'], 5)
+        self.assertFalse(self.db.in_transaction)
+
+    def test_reconciliation_preserves_caller_transaction(self):
+        post_event(self.db, 'north', 'flour', 'r', 5, 'receipt')
+        self.db.execute('BEGIN')
+        try:
+            self.assertEqual(reconcile_sqlite(self.db, 'north')['flour'], 5)
+            self.assertTrue(self.db.in_transaction)
+        finally:
+            self.db.rollback()
+
+    def test_failed_reconciliation_releases_owned_transaction(self):
+        self.db.execute("DROP TRIGGER stock_no_update")
+        self.db.execute("DROP TRIGGER stock_no_delete")
+        self.db.execute(
+            "INSERT INTO stock_events(venue_id,event_id,ingredient_id,delta,reason) "
+            "VALUES(?,?,?,?,?)", ('north', 'bad', 'flour', -1, 'use')
+        )
+        with self.assertRaises(ValueError):
+            reconcile_sqlite(self.db, 'north')
+        self.assertFalse(self.db.in_transaction)
+
+
 if __name__ == '__main__':
     unittest.main()
