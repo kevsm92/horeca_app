@@ -3,6 +3,7 @@
 No listener, login route, demo identity, or public deployment is provided.
 """
 import json
+import sqlite3
 from urllib.parse import parse_qs
 from menu_catalog import list_items
 
@@ -37,7 +38,10 @@ def make_menu_app(db, resolve_session):
         if kind is not None and kind not in ('food', 'drink'):
             return respond('400 Bad Request', {'error': 'invalid_kind'})
         # Client headers and query parameters are never trusted for identity/venue.
-        identity = resolve_session(environ)
+        try:
+            identity = resolve_session(environ)
+        except sqlite3.Error:
+            return respond('503 Service Unavailable', {'error': 'temporarily_unavailable'})
         if not isinstance(identity, dict):
             return respond('401 Unauthorized', {'error': 'unauthenticated'})
         venue = identity.get('venue_id')
@@ -46,5 +50,9 @@ def make_menu_app(db, resolve_session):
         permissions = identity.get('permissions')
         if not isinstance(permissions, (set, frozenset)) or 'menu:read' not in permissions:
             return respond('403 Forbidden', {'error': 'forbidden'})
-        return respond('200 OK', {'items': list_items(db, authorized_venue_id=venue, kind=kind)})
+        try:
+            items = list_items(db, authorized_venue_id=venue, kind=kind)
+        except sqlite3.Error:
+            return respond('503 Service Unavailable', {'error': 'temporarily_unavailable'})
+        return respond('200 OK', {'items': items})
     return app
