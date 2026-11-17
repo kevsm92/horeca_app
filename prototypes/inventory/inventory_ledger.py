@@ -47,7 +47,7 @@ def balance(db,venue,ingredient):
 def post_event(db,venue,ingredient,event,delta,reason):
     """Returns False on identical retry; conflicts and negative stock raise."""
     venue,ingredient,event=map(ident,(venue,ingredient,event))
-    if type(delta) is not int or delta==0 or abs(delta)>10**12 or reason not in {'receipt','use','waste','correction'}:
+    if type(delta) is not int or delta==0 or abs(delta)>10**12 or not isinstance(reason,str) or reason not in {'receipt','use','waste','correction'}:
         raise ValueError('invalid stock event')
     if (reason=='receipt' and delta<0) or (reason in {'use','waste'} and delta>0):
         raise ValueError('stock movement sign does not match reason')
@@ -122,6 +122,14 @@ class LedgerTests(unittest.TestCase):
         self.assertTrue(post_event(self.db,'a','flour','w',-1,'waste'))
         self.assertTrue(post_event(self.db,'a','flour','c',1,'correction'))
         self.assertEqual(balance(self.db,'a','flour'),8)
+
+    def test_malformed_reason_rejected_without_writes(self):
+        for reason in (None, [], {}, 7, True, 'unknown'):
+            with self.subTest(reason=repr(reason)):
+                with self.assertRaises(ValueError):
+                    post_event(self.db,'a','flour','malformed',1,reason)
+        self.assertEqual(balance(self.db,'a','flour'),0)
+        self.assertEqual(self.db.execute('SELECT COUNT(*) FROM stock_events').fetchone()[0],0)
 
     def test_event_ids_venue_scoped(self):
         post_event(self.db,'a','flour','r',10,'receipt')
