@@ -1,0 +1,10 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {parseFloorPlanResponse,floorPlanPatch} from '../src/floorPlanContract.js';
+const valid=()=>({revision:3,tables:[{id:'T1',physical_seats:4,occupied_guests:2}],placements:[{table_id:'T1',x_percent:25,y_percent:50}]});
+test('maps Python floor-plan fields to immutable-shape React state',()=>{const p=parseFloorPlanResponse(valid());assert.deepEqual(p.tables,[{id:'T1',seats:4,guests:2}]);assert.deepEqual(p.positions.T1,{x:25,y:50});assert.equal(p.revision,3);});
+test('rejects unknown or duplicate placed tables',()=>{const a=valid();a.placements[0].table_id='OTHER';assert.throws(()=>parseFloorPlanResponse(a));const b=valid();b.placements.push({...b.placements[0]});assert.throws(()=>parseFloorPlanResponse(b));});
+test('rejects invalid inventory and overcapacity',()=>{const a=valid();a.tables[0].occupied_guests=5;assert.throws(()=>parseFloorPlanResponse(a));const b=valid();b.tables.push({...b.tables[0]});assert.throws(()=>parseFloorPlanResponse(b));});
+test('rejects unsafe coordinates and malformed responses',()=>{for(const x of [NaN,Infinity,-1,101,'50']){const a=valid();a.placements[0].x_percent=x;assert.throws(()=>parseFloorPlanResponse(a));}assert.throws(()=>parseFloorPlanResponse(null));});
+test('produces revision-checked patch without trusting venue ID',()=>{assert.deepEqual(floorPlanPatch(3,{T1:{x:30,y:40}}),{expected_revision:3,operations:[{type:'move',table_id:'T1',x_percent:30,y_percent:40}]});});
+test('rejects malformed patches and prototype-pollution table IDs',()=>{assert.throws(()=>floorPlanPatch(-1,{}));assert.throws(()=>floorPlanPatch(1,{'../x':{x:20,y:20}}));assert.throws(()=>floorPlanPatch(1,{T1:{x:Infinity,y:20}}));});
