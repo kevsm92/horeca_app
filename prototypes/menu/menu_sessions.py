@@ -25,6 +25,10 @@ def resolve_menu_session(db, environ, *, now=None):
     raw = environ.get('HTTP_COOKIE', '')
     if not isinstance(raw, str) or len(raw) > 4096:
         return None
+    # Reject duplicate session cookies before SimpleCookie silently overwrites one.
+    parts = [part.strip() for part in raw.split(';')]
+    if sum(part.split('=', 1)[0].strip() == 'horeca_session' for part in parts if '=' in part) != 1:
+        return None
     try:
         cookies = SimpleCookie()
         cookies.load(raw)
