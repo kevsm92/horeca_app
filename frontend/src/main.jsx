@@ -1,6 +1,7 @@
 import React,{useState} from 'react';
 import{createRoot}from'react-dom/client';
 import './styles.css';
+import {updateGuestCount,canSubmitOrder} from './tableRules.js';
 const sections=['Dashboard','Tables','Food & Menu','Orders / POS','Kitchen / Bar','Reservations','Inventory','Staff & Shifts','Tasks & SOP','Reports','Settings'];
 const food=[['Burrata & Tomatoes',1450,'Starters','photo-1608897013039-887f21d8c804'],['Seared Salmon',2490,'Mains','photo-1467003909585-2f8a72700288'],['Steak Frites',2890,'Mains','photo-1546833999-b9f581a1996d'],['Wild Mushroom Risotto',2150,'Mains','photo-1476124369491-e7addf5db371'],['Chocolate Fondant',950,'Desserts','photo-1606313564200-e75d5e30476c'],['House Lemonade',550,'Drinks','photo-1513558161293-cdaf765edfd4']];
 const initialTables=[2,4,4,2,6,4,6,4].map((seats,i)=>({id:'T'+(i+1),seats,guests:[0,4,0,0,2,3,0,0][i]}));
@@ -10,8 +11,8 @@ const[page,setPage]=useState('Dashboard'),[tables,setTables]=useState(initialTab
 const table=tables.find(t=>t.id===selected);
 const total=Object.entries(cart).reduce((n,[i,q])=>n+food[Number(i)][1]*q,0);
 const orderValue=orders.reduce((n,o)=>n+o.total,0);
-function guests(delta){if(!table)return;const next=table.guests+delta;if(next<0||next>table.seats){setNotice('Physical table capacity cannot be exceeded.');return;}setTables(old=>old.map(t=>t.id===selected?{...t,guests:next}:t));}
-function send(){if(!total){setNotice('Add menu items first.');return;}if(!table||!table.guests){setNotice('Seat guests before sending an order.');setPage('Tables');return;}setOrders(old=>[...old,{id:old.length+1,table:selected,items:Object.entries(cart).filter(([,q])=>q>0),total,status:'New'}]);setCart({});setPage('Kitchen / Bar');setNotice('Fictional ticket sent.');}
+function guests(delta){const result=updateGuestCount(tables,selected,delta);if(!result.ok){setNotice(result.reason);return;}setTables(result.tables);}
+function send(){const check=canSubmitOrder(table,total);if(!check.ok){setNotice(check.reason);if(!table||!table.guests)setPage('Tables');return;}setOrders(old=>[...old,{id:old.length+1,table:selected,items:Object.entries(cart).filter(([,q])=>q>0),total,status:'New'}]);setCart({});setPage('Kitchen / Bar');setNotice('Fictional ticket sent.');}
 const metric=(label,value,sub)=><div className="metric"><span>{label}</span><strong>{value}</strong><small>{sub}</small></div>;
 return <><header><b>✦ HORECA</b><span>Restaurant & Hospitality Management</span><span>Bistro Noord · DEMO</span></header><div className="shell"><nav aria-label="Main navigation">{sections.map(s=><button key={s} className={page===s?'active':''} aria-current={page===s?'page':undefined} onClick={()=>{setPage(s);setNotice('');}}>{s}</button>)}</nav><main><div className="heading"><div><small>BISTRO NOORD / OPERATIONS</small><h1>{page}</h1></div><span>● Synthetic data only</span></div>{notice&&<p className="notice" role="status">{notice}</p>}
 {page==='Dashboard'&&<><div className="metrics">{metric('Occupied tables',tables.filter(t=>t.guests>0).length+' / '+tables.length,'Physical tables')}{metric('Seated guests',tables.reduce((n,t)=>n+t.guests,0),'Current demo state')}{metric('Kitchen tickets',orders.filter(o=>o.status!=='Ready').length,'Not ready')}{metric('Demo order value',euro(orderValue),'No payments')}</div><section className="panel"><h2>Service overview</h2><p>Manage tables, menus, ordering and kitchen tickets from shared React state.</p><button onClick={()=>setPage('Tables')}>Open floor plan</button> <button onClick={()=>setPage('Orders / POS')}>Take order</button></section></>}
