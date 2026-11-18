@@ -1,4 +1,5 @@
 """Offline guard for menu-to-recipe revision references; no allergen certification."""
+from bom_validation import validate_bom_snapshot
 
 def resolve_published_recipe(db, *, authorized_venue_id, item_id):
     """Return a venue-matched immutable BOM snapshot, or None if unlinked.
@@ -17,9 +18,6 @@ def resolve_published_recipe(db, *, authorized_venue_id, item_id):
         return None
     if row[2] is None:
         raise ValueError('linked recipe revision is not published')
-    import json
-    bom = json.loads(row[2])
-    if not isinstance(bom, list) or not bom:
-        raise ValueError('invalid published BOM')
+    bom = validate_bom_snapshot(row[2])
     return {'recipe_id':row[0], 'recipe_revision':row[1], 'bom':bom,
             'allergen_status':'unverified', 'cost_status':'not_quoted'}
