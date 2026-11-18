@@ -25,4 +25,15 @@ class GateTests(unittest.TestCase):
         value=resolve_published_recipe(self.db,authorized_venue_id='A',item_id='soup')
         self.assertEqual((value['allergen_status'],value['cost_status']),('unverified','not_quoted'))
 
+    def test_invalid_published_bom_rejected(self):
+        invalid = ['not-json', '[]', '[{"ingredient_id":"demo","quantity":0,"unit":"mg"}]',
+                   '[{"ingredient_id":"demo","quantity":10,"unit":"kg"}]',
+                   '[{"ingredient_id":"demo","quantity":10,"unit":"mg"},{"ingredient_id":"demo","quantity":2,"unit":"mg"}]']
+        for payload in invalid:
+            with self.subTest(payload=payload):
+                self.db.execute('UPDATE recipe_revision_snapshots SET bom_json=? WHERE venue_id=?', (payload,'A'))
+                with self.assertRaises(ValueError):
+                    resolve_published_recipe(self.db,authorized_venue_id='A',item_id='soup')
+                self.assertEqual(resolve_published_recipe(self.db,authorized_venue_id='B',item_id='soup')['bom'][0]['ingredient_id'],'other')
+
 if __name__=='__main__': unittest.main()
