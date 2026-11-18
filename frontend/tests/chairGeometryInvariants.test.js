@@ -14,7 +14,11 @@ test('all supported capacities render one unique position per chair', () => {
 
 test('chairs are distributed evenly across sides for every supported capacity', () => {
   for (let capacity = 1; capacity <= 30; capacity++) {
-    const counts = Object.values(Object.groupBy(chairPositions(capacity), chair => chair.side)).map(group => group.length);
+    const countsBySide = new Map();
+    for (const { side } of chairPositions(capacity)) {
+      countsBySide.set(side, (countsBySide.get(side) ?? 0) + 1);
+    }
+    const counts = [...countsBySide.values()];
     assert.ok(Math.max(...counts) - Math.min(...counts) <= 1, `capacity ${capacity}`);
   }
 });
