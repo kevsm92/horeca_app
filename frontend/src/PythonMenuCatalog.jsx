@@ -1,0 +1,37 @@
+import React,{useEffect,useState} from 'react';
+import {loadMenu} from './menuClient.js';
+import {filterMenu} from './menuViewModel.js';
+const eur=cents=>new Intl.NumberFormat('en-BE',{style:'currency',currency:'EUR'}).format(cents/100);
+/** Authenticated read-only menu: never substitutes hardcoded demo dishes on failure. */
+export default function PythonMenuCatalog(){
+ const [state,setState]=useState({status:'loading',items:[],error:''});
+ const [query,setQuery]=useState('');
+ const [kind,setKind]=useState('all');
+ const [retry,setRetry]=useState(0);
+ useEffect(()=>{
+   const controller=new AbortController();
+   setState({status:'loading',items:[],error:''});
+   loadMenu({signal:controller.signal}).then(items=>{
+     if(!controller.signal.aborted)setState({status:'ready',items,error:''});
+   }).catch(error=>{
+     if(!controller.signal.aborted)setState({status:'error',items:[],error:error?.code==='AUTH'?'Sign in with menu access to view this catalog.':'Menu catalog unavailable. Check the local authenticated Python service.'});
+   });
+   return ()=>controller.abort();
+ },[retry]);
+ const shown=state.status==='ready'?filterMenu(state.items,query,kind):[];
+ return <section className="panel" aria-label="Python food and drink catalog">
+  <h2>Food &amp; Drink · Python catalog</h2>
+  <p className="muted">Authenticated read-only catalog. Any entries shown are from the Python API; the separate demo POS is not connected to this catalog.</p>
+  {state.status==='loading'&&<p role="status">Loading food and drinks…</p>}
+  {state.status==='error'&&<><p role="alert">{state.error}</p><button type="button" onClick={()=>setRetry(n=>n+1)}>Retry menu load</button></>}
+  {state.status==='ready'&&<>
+   <div className="filters">
+    <input aria-label="Search catalog" placeholder="Search food and drinks" value={query} onChange={e=>setQuery(e.target.value)}/>
+    <select aria-label="Catalog type" value={kind} onChange={e=>setKind(e.target.value)}><option value="all">All</option><option value="food">Food</option><option value="drink">Drinks</option></select>
+   </div>
+   <p role="status" className="muted">{shown.length} of {state.items.length} catalog items shown</p>
+   {shown.length===0?<p>{state.items.length===0?'No menu items configured for this venue.':'No matching food or drinks.'}</p>:
+    <div className="dishes">{shown.map(item=><article className="dish" key={item.id}><div><small>{item.kind==='food'?'Food':'Drink'} · {item.available?'Available':'Unavailable'}</small><h3>{item.name}</h3>{item.description&&<p>{item.description}</p>}<b>{eur(item.priceCents)}</b></div></article>)}</div>}
+  </>}
+ </section>;
+}
