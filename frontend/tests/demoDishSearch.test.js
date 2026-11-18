@@ -14,3 +14,14 @@ test('category and query compose without mutating the source', () => {
   assert.deepEqual(filterDemoDishes(dishes, 'Mains', ''), [{dish:dishes[0],index:0},{dish:dishes[2],index:2}]);
   assert.equal(dishes.length,3);
 });
+
+test('accent-insensitive POS search handles composed and decomposed dish names', () => {
+  const accented = Object.freeze([
+    Object.freeze(['Crème brûlée', 850, 'Desserts']),
+    Object.freeze(['Cafe\u0301 latte', 490, 'Drinks']),
+    Object.freeze(['Salade niçoise', 1290, 'Mains'])
+  ]);
+  assert.deepEqual(filterDemoDishes(accented, 'Desserts', 'CREME BRULEE'), [{dish:accented[0],index:0}]);
+  assert.deepEqual(filterDemoDishes(accented, 'All', 'café'), [{dish:accented[1],index:1}]);
+  assert.deepEqual(filterDemoDishes(accented, 'Mains', 'NICOISE'), [{dish:accented[2],index:2}]);
+});
