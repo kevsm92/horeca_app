@@ -37,3 +37,27 @@
 /* Searchable synthetic reservation list. */
 .reservation-search{display:block;width:100%;max-width:420px;margin:10px 0 14px;background:#0c273a;color:#fff;border:1px solid #385c72;padding:11px;border-radius:8px}
 @media(max-width:700px){.panel .line{flex-wrap:wrap;align-items:flex-start}}
+
+
+/* Mobile service workflows: keep navigation and POS controls usable without
+   clipping labels or requiring precision taps. This is presentation-only. */
+@media (max-width:700px) {
+  nav {
+    gap:4px;
+    overscroll-behavior-x:contain;
+    -webkit-overflow-scrolling:touch;
+    scroll-padding-inline:12px;
+  }
+  nav button {
+    flex:0 0 auto;
+    min-height:44px;
+    padding:11px 14px;
+  }
+  .filters { flex-wrap:wrap; }
+  .filters input { flex:1 1 180px; min-width:0; }
+  .filters select { flex:1 1 120px; min-height:44px; }
+  .cart-row { flex-wrap:wrap; }
+  .cart-row span { flex:1 1 100%; overflow-wrap:anywhere; }
+  .cart-row button { min-width:44px; min-height:44px; }
+  .ticket button { min-height:44px; }
+}
