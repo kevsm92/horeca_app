@@ -13,6 +13,6 @@ test('POS shows the authenticated Python catalog before the fictional order buil
 });
 
 test('Food & Menu retains the authenticated catalog and demo checkout is isolated', () => {
-  assert.match(source, /\\{page==='Food & Menu'&&<PythonMenuCatalog\\/>\\}/);
-  assert.match(source, /No payments or external API calls\\.<\\/p><\\/aside><\\/div><\\/>\\}/);
+  assert.match(source, /\{page==='Food & Menu'&&<PythonMenuCatalog\/>\}/);
+  assert.match(source, /No payments or external API calls\.<\/p><\/aside><\/div><\/>\}/);
 });
