@@ -24,6 +24,6 @@ def assess_cost_variance(previous, current, *, authorized_venue, review_threshol
             "previous_quote_revision": previous["quote_revision"],
             "current_quote_revision": current["quote_revision"],
             "review_threshold_cents": review_threshold_cents,
-            "requires_manager_review": abs(delta) >= review_threshold_cents,
+            "requires_manager_review": delta != 0 and abs(delta) >= review_threshold_cents,
             "approval_status": "not_approved",
             "effect": "review_only_no_price_or_stock_mutation"}
