@@ -1,4 +1,5 @@
 """Offline venue-scoped recipe/BOM cost estimate; no stock movements or allergen certification."""
+from recipe_units import normalize_quantity
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS recipe_ingredients (
  venue_id TEXT NOT NULL, ingredient_id TEXT NOT NULL,
@@ -25,14 +26,15 @@ def add_ingredient(db, *, venue, ingredient, unit, cost_cents_per_1000, allergen
         db.execute('INSERT INTO recipe_ingredients VALUES (?,?,?,?,?)',
                    (venue,ingredient,unit,cost_cents_per_1000,','.join(sorted(set(allergens)))))
 def add_component(db, *, venue, recipe, ingredient, quantity, unit):
-    if not all(isinstance(v,str) and v.strip() for v in (venue,recipe,ingredient)) or type(quantity) is not int or quantity<=0:
+    if not all(isinstance(v,str) and v.strip() for v in (venue,recipe,ingredient))  :
         raise ValueError('invalid component')
     row=db.execute('SELECT unit FROM recipe_ingredients WHERE venue_id=? AND ingredient_id=?',
                    (venue,ingredient)).fetchone()
-    if row is None or row[0]!=unit:
-        raise ValueError('unknown ingredient or incompatible unit')
+    if row is None:
+        raise ValueError('unknown venue ingredient')
+    normalized=normalize_quantity(quantity,unit,row[0])
     with db:
-        db.execute('INSERT INTO recipe_components VALUES (?,?,?,?)',(venue,recipe,ingredient,quantity))
+        db.execute('INSERT INTO recipe_components VALUES (?,?,?,?)',(venue,recipe,ingredient,normalized))
 def recipe_summary(db, *, authorized_venue, recipe):
     if not all(isinstance(v,str) and v.strip() for v in (authorized_venue,recipe)):
         raise ValueError('trusted venue and recipe required')
