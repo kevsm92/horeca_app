@@ -57,7 +57,9 @@ export function createPythonTablesApi(fetchImpl = globalThis.fetch) {
       let payload;
       try {
         payload = await response.json();
-      } catch {
+      } catch (error) {
+        // Aborting while the response body is streaming is not malformed JSON.
+        if (signal?.aborted) throw error;
         throw new PythonApiError('INVALID_RESPONSE', 'Python API returned malformed JSON.');
       }
       return parsePythonTables(payload);
