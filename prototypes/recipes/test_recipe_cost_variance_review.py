@@ -18,6 +18,15 @@ class CostVarianceReviewTests(unittest.TestCase):
         self.assertEqual(result["approval_status"], "not_approved")
         self.assertEqual(result["effect"], "review_only_no_price_or_stock_mutation")
 
+    def test_zero_threshold_requires_actual_cost_change(self):
+        for current_cost, expected in ((100, False), (101, True), (99, True)):
+            with self.subTest(current_cost=current_cost):
+                result = assess_cost_variance(
+                    quote(100), quote(current_cost, revision=2),
+                    authorized_venue="fictional-bistro", review_threshold_cents=0)
+                self.assertEqual(result["requires_manager_review"], expected)
+                self.assertEqual(result["approval_status"], "not_approved")
+
     def test_below_threshold_and_negative_variance(self):
         for end, expected in ((109, False), (90, True)):
             with self.subTest(end=end):
