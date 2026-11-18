@@ -17,3 +17,12 @@ test('rejects nonfinite coordinates and missing geometry', () => {
   assert.equal(pointerFloorPosition({ x: 20, y: 20 }, { x: 0, y: 0 }, { x: Infinity, y: 1 }, { width: 100, height: 100 }), null);
   assert.equal(pointerFloorPosition(null, { x: 0, y: 0 }, { x: 1, y: 1 }, { width: 100, height: 100 }), null);
 });
+
+
+test('rejects arithmetic overflow despite individually finite pointer inputs', () => {
+  const origin = { x: 20, y: 20 };
+  const start = { x: -1e308, y: 0 };
+  const current = { x: 1e308, y: 1 };
+  assert.equal(pointerFloorPosition(origin, start, current, { width: 100, height: 100 }), null);
+  assert.equal(pointerFloorPosition(origin, { x: 0, y: 0 }, { x: 1, y: 1 }, { width: Number.MIN_VALUE, height: 100 }), null);
+});
