@@ -62,6 +62,9 @@ export function createPythonTablesApi(fetchImpl = globalThis.fetch) {
         if (signal?.aborted) throw error;
         throw new PythonApiError('INVALID_RESPONSE', 'Python API returned malformed JSON.');
       }
+      // A response body may resolve after the caller has cancelled the view.
+      // Never surface stale venue data as a successful read.
+      if (signal?.aborted) throw new DOMException('The request was aborted.', 'AbortError');
       return parsePythonTables(payload);
     }
   });
