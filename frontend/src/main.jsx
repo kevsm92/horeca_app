@@ -3,6 +3,7 @@ import{createRoot}from'react-dom/client';
 import './styles.css';
 import {updateGuestCount,canSubmitOrder} from './tableRules.js';
 import {moveTable,initialFloorPositions} from './floorLayout.js';
+import {pointerFloorPosition} from './pointerFloorPosition.js';
 import {chairPositions} from './chairPositions.js';
 import PythonFloorPlanPreview from './PythonFloorPlanPreview.jsx';
 import PythonMenuCatalog from './PythonMenuCatalog.jsx';
@@ -22,7 +23,7 @@ const dragRef=useRef(null);
 function reposition(id,x,y){setFloorPositions(old=>moveTable(old,id,x,y));}
 function resetFloor(){setFloorPositions(initialFloorPositions);setFloorAnnouncement('Demo floor plan restored to its original positions.');}
 function onFloorPointerDown(event,id){if(event.button!==0)return;const node=event.currentTarget;const floor=node.closest('.floor');if(!floor)return;const bounds=floor.getBoundingClientRect();dragRef.current={id,bounds,startX:event.clientX,startY:event.clientY,origin:floorPositions[id],moved:false};node.setPointerCapture?.(event.pointerId);}
-function onFloorPointerMove(event){const drag=dragRef.current;if(!drag||!drag.origin)return;const dx=(event.clientX-drag.startX)/drag.bounds.width*100;const dy=(event.clientY-drag.startY)/drag.bounds.height*100;if(Math.abs(dx)+Math.abs(dy)>0.5)drag.moved=true;if(drag.moved)reposition(drag.id,drag.origin.x+dx,drag.origin.y+dy);}
+function onFloorPointerMove(event){const drag=dragRef.current;if(!drag||!drag.origin)return;const point=pointerFloorPosition(drag.origin,{x:drag.startX,y:drag.startY},{x:event.clientX,y:event.clientY},drag.bounds);if(!point)return;if(Math.abs(point.x-drag.origin.x)+Math.abs(point.y-drag.origin.y)>0.5)drag.moved=true;if(drag.moved)reposition(drag.id,point.x,point.y);}
 function onFloorPointerUp(){dragRef.current=null;}
 function onFloorKeyDown(event,id){const changes={ArrowUp:[0,-2],ArrowDown:[0,2],ArrowLeft:[-2,0],ArrowRight:[2,0]};const delta=changes[event.key];if(!delta)return;event.preventDefault();const p=floorPositions[id];if(p){const next=moveTable(floorPositions,id,p.x+delta[0],p.y+delta[1]);if(next!==floorPositions){setFloorPositions(next);setFloorAnnouncement(id+' moved '+event.key.replace('Arrow','').toLowerCase()+'.');}else setFloorAnnouncement(id+' is at the floor-plan boundary.');}}
 const total=Object.entries(cart).reduce((n,[i,q])=>n+food[Number(i)][1]*q,0);
