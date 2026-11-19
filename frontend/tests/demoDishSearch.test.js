@@ -25,3 +25,14 @@ test('accent-insensitive POS search handles composed and decomposed dish names',
   assert.deepEqual(filterDemoDishes(accented, 'All', 'café'), [{dish:accented[1],index:1}]);
   assert.deepEqual(filterDemoDishes(accented, 'Mains', 'NICOISE'), [{dish:accented[2],index:2}]);
 });
+
+test('synthetic POS search collapses Unicode whitespace without changing cart identities', () => {
+  const catalog = Object.freeze([
+    Object.freeze(['Crème\u00a0\u00a0brûlée', 850, 'Desserts']),
+    Object.freeze(['Iced\n Coffee', 490, 'Drinks'])
+  ]);
+  assert.deepEqual(filterDemoDishes(catalog, 'Desserts', ' creme   brulee '), [{dish:catalog[0],index:0}]);
+  assert.deepEqual(filterDemoDishes(catalog, 'Drinks', 'iced\tcoffee'), [{dish:catalog[1],index:1}]);
+  assert.deepEqual(filterDemoDishes(catalog, 'Desserts', 'iced coffee'), []);
+  assert.equal(catalog[0][0], 'Crème\u00a0\u00a0brûlée');
+});
