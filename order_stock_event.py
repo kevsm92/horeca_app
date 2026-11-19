@@ -30,11 +30,12 @@ def initialize(connection):
 
 
 def record_order_consumption(connection, *, venue_id, event_id, order_id, ingredients):
-    """Write one atomic deduction per ingredient; duplicates are replay-safe.
+    """Atomically write one deduction per ingredient; concurrent retries are replay-safe.
 
     Caller must derive venue_id from authenticated server context, not request body.
     Ingredient amounts are positive integer milliunits in a prevalidated recipe unit.
     This does not check stock availability or send a real order.
+    Requires ownership of a connection without an active transaction.
     """
     for value in (venue_id, event_id, order_id):
         if not isinstance(value, str) or not value or len(value) > 128:
@@ -46,17 +47,27 @@ def record_order_consumption(connection, *, venue_id, event_id, order_id, ingred
            for k, v in ingredients.items()):
         raise ValueError('Invalid ingredient quantity')
     payload = json.dumps({'order_id': order_id, 'ingredients': ingredients}, sort_keys=True, separators=(',', ':'))
-    with connection:
+    if connection.in_transaction:
+        raise ValueError('Dedicated connection required: transaction already active')
+    # Acquire writer lock before checking idempotency, preventing two connections
+    # from both observing an absent event before either inserts.
+    connection.execute('BEGIN IMMEDIATE')
+    try:
         existing = connection.execute(
             'SELECT payload FROM order_stock_events WHERE venue_id=? AND event_id=?',
             (venue_id, event_id)).fetchone()
         if existing:
             if existing[0] != payload:
                 raise ValueError('Event ID reused with different payload')
+            connection.commit()
             return False
         connection.execute('INSERT INTO order_stock_events VALUES (?,?,?,?)',
                            (venue_id, event_id, order_id, payload))
         connection.executemany('INSERT INTO order_stock_ledger VALUES (?,?,?,?)',
             [(venue_id, event_id, ingredient_id, -amount)
              for ingredient_id, amount in sorted(ingredients.items())])
-    return True
+        connection.commit()
+        return True
+    except BaseException:
+        connection.rollback()
+        raise
