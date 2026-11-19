@@ -29,3 +29,19 @@ test('cannot add unavailable items, remove absent items or exceed quantity cap',
   assert.throws(()=>changeCatalogQuantity(items,{'demo-food-1':99},'demo-food-1',1),/limit/);
 });
 test('empty catalog and empty cart produce a zero total',()=>assert.deepEqual(catalogCartLines([],{}),{lines:[],totalCents:0}));
+
+test('prototype-like stable IDs remain ordinary cart keys without prototype mutation',()=>{
+  const special=[{id:'__proto__',name:'Synthetic Special',priceCents:275,available:true},
+                 {id:'constructor',name:'Synthetic Constructor',priceCents:125,available:true}];
+  const first=changeCatalogQuantity(special,{},'__proto__',1);
+  assert.equal(Object.getPrototypeOf(first),Object.prototype);
+  assert.equal(Object.hasOwn(first,'__proto__'),true);
+  assert.equal(first['__proto__'],1);
+  const second=changeCatalogQuantity(special,first,'constructor',1);
+  assert.equal(second.constructor,1);
+  assert.equal(Object.getPrototypeOf(second),Object.prototype);
+  assert.equal(catalogCartLines(special,second).totalCents,400);
+  const third=changeCatalogQuantity(special,second,'__proto__',-1);
+  assert.equal(Object.hasOwn(third,'__proto__'),false);
+  assert.equal(catalogCartLines(special,third).totalCents,125);
+});
