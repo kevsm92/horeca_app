@@ -5,15 +5,16 @@ const KEY_DELTAS = Object.freeze({
 });
 
 /** Synthetic floor UI feedback only; Python remains authoritative for seating. */
-export function keyboardFloorMove(positions, id, key) {
+export function keyboardFloorMove(positions, id, key, shiftKey = false) {
   const delta = KEY_DELTAS[key];
   const point = positions?.[id];
   if (!delta || !point) return null;
-  const x = point.x + delta[0];
-  const y = point.y + delta[1];
+  const step = shiftKey ? 5 : 1;
+  const x = point.x + delta[0] * step;
+  const y = point.y + delta[1] * step;
   const next = moveTable(positions, id, x, y);
   const direction = key.slice(5).toLowerCase();
-  if (next !== positions) return { positions: next, announcement: `${id} moved ${direction}.` };
+  if (next !== positions) return { positions: next, announcement: `${id} moved ${direction}${shiftKey ? ' (large step)' : ''}.` };
   const boundary = x < 10 || x > 90 || y < 10 || y > 90;
   return { positions, announcement: boundary
     ? `${id} cannot move ${direction}: floor-plan boundary.`
