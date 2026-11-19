@@ -31,3 +31,32 @@ test('aborted Python tables request propagates cancellation rather than misrepor
     error === abortError && !(error instanceof PythonApiError)
   );
 });
+
+test('aborted streaming JSON read preserves cancellation instead of malformed-response error', async () => {
+  const controller = new AbortController();
+  const abortError = Object.assign(new Error('cancelled during body read'), { name: 'AbortError' });
+  const api = createPythonTablesApi(async () => ({
+    ok: true,
+    headers: { get: () => 'application/json' },
+    json: async () => {
+      controller.abort();
+      throw abortError;
+    }
+  }));
+  await assert.rejects(api.listTables({ signal: controller.signal }), error =>
+    error === abortError && !(error instanceof PythonApiError)
+  );
+});
+
+test('late abort discards parsed data rather than exposing a stale venue snapshot', async () => {
+  const controller = new AbortController();
+  const api = createPythonTablesApi(async () => ({
+    ok: true,
+    headers: { get: () => 'application/json' },
+    json: async () => {
+      controller.abort();
+      return { tables: [{ id: 'T1', seats: 4, guests: 2 }] };
+    }
+  }));
+  await assert.rejects(api.listTables({ signal: controller.signal }), { name: 'AbortError' });
+});
