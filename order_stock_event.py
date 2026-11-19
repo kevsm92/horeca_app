@@ -9,6 +9,8 @@ def initialize(connection):
     CREATE TABLE IF NOT EXISTS order_stock_events (
       venue_id TEXT NOT NULL, event_id TEXT NOT NULL, order_id TEXT NOT NULL,
       payload TEXT NOT NULL, PRIMARY KEY(venue_id,event_id));
+    CREATE UNIQUE INDEX IF NOT EXISTS order_stock_one_event_per_order
+      ON order_stock_events(venue_id,order_id);
     CREATE TABLE IF NOT EXISTS order_stock_ledger (
       venue_id TEXT NOT NULL, event_id TEXT NOT NULL, ingredient_id TEXT NOT NULL,
       delta_milliunits INTEGER NOT NULL CHECK(delta_milliunits < 0),
@@ -61,6 +63,11 @@ def record_order_consumption(connection, *, venue_id, event_id, order_id, ingred
                 raise ValueError('Event ID reused with different payload')
             connection.commit()
             return False
+        # Prevent a second event key from consuming the same order twice.
+        if connection.execute(
+            'SELECT 1 FROM order_stock_events WHERE venue_id=? AND order_id=?',
+            (venue_id, order_id)).fetchone():
+            raise ValueError('Order already consumed under a different event ID')
         connection.execute('INSERT INTO order_stock_events VALUES (?,?,?,?)',
                            (venue_id, event_id, order_id, payload))
         connection.executemany('INSERT INTO order_stock_ledger VALUES (?,?,?,?)',
