@@ -25,3 +25,12 @@ test('accent-insensitive search supports composed and decomposed Unicode without
  assert.deepEqual(filterMenu(accented,'cafe','food'),[]);
  assert.equal(JSON.stringify(accented),snapshot);
 });
+
+test('search tolerates repeated and nonbreaking whitespace in catalog and input',()=>{
+ const catalog=[{id:'one',kind:'food',name:'Crème\u00a0\u00a0brûlée'},{id:'two',kind:'drink',name:'Iced\n Coffee'}];
+ const snapshot=JSON.stringify(catalog);
+ assert.deepEqual(filterMenu(catalog,'  creme   brulee  ','food'),[catalog[0]]);
+ assert.deepEqual(filterMenu(catalog,'iced\tcoffee','drink'),[catalog[1]]);
+ assert.deepEqual(filterMenu(catalog,'coffee','food'),[]);
+ assert.equal(JSON.stringify(catalog),snapshot);
+});
