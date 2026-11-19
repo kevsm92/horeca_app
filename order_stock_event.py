@@ -14,6 +14,18 @@ def initialize(connection):
       delta_milliunits INTEGER NOT NULL CHECK(delta_milliunits < 0),
       PRIMARY KEY(venue_id,event_id,ingredient_id),
       FOREIGN KEY(venue_id,event_id) REFERENCES order_stock_events(venue_id,event_id));
+    CREATE TRIGGER IF NOT EXISTS order_stock_ledger_no_update
+      BEFORE UPDATE ON order_stock_ledger
+      BEGIN SELECT RAISE(ABORT, 'immutable order stock ledger'); END;
+    CREATE TRIGGER IF NOT EXISTS order_stock_ledger_no_delete
+      BEFORE DELETE ON order_stock_ledger
+      BEGIN SELECT RAISE(ABORT, 'immutable order stock ledger'); END;
+    CREATE TRIGGER IF NOT EXISTS order_stock_events_no_update
+      BEFORE UPDATE ON order_stock_events
+      BEGIN SELECT RAISE(ABORT, 'immutable order stock event'); END;
+    CREATE TRIGGER IF NOT EXISTS order_stock_events_no_delete
+      BEFORE DELETE ON order_stock_events
+      BEGIN SELECT RAISE(ABORT, 'immutable order stock event'); END;
     """)
 
 
