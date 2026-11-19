@@ -4,14 +4,14 @@ export const demoReservations = Object.freeze([
   Object.freeze({ id: 'demo-r2', time: '20:00', name: 'Jamie Lee', guests: 4, table: 'T3' })
 ]);
 
-// Normalize accents for forgiving local demo search only; never for authorization or availability.
-const searchKey = value => String(value).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase();
+// Forgiving local demo search only; never use for authorization or availability.
+const searchKey = value => String(value).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase().replace(/\s+/gu, ' ').trim();
 
 export function filterDemoReservations(reservations, query = '') {
-  const term = searchKey(query).trim();
-  if (!term) return [...reservations];
-  return reservations.filter(reservation =>
-    [reservation.name, reservation.table, reservation.time]
-      .some(value => searchKey(value).includes(term))
-  );
+  const terms = searchKey(query).split(' ').filter(Boolean);
+  if (!terms.length) return [...reservations];
+  return reservations.filter(reservation => {
+    const fields = [reservation.name, reservation.table, reservation.time].map(searchKey);
+    return terms.every(term => fields.some(field => field.includes(term)));
+  });
 }
