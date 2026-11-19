@@ -30,7 +30,7 @@ export default function CatalogPos(){
   try{projection=catalogCartLines(items,quantities);}
   catch{projection={lines:[],totalCents:0};}
   function adjust(id,delta){
-    try{setQuantities(old=>changeCatalogQuantity(items,old,id,delta));setNotice('');}
+    try{const next=changeCatalogQuantity(items,quantities,id,delta);setQuantities(next);setNotice('');}
     catch{setNotice('Item unavailable or cart quantity limit reached. Refresh the catalog.');}
   }
   return <section className="panel" aria-label="Authenticated catalog POS">
