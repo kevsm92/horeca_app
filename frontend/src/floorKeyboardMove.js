@@ -6,9 +6,9 @@ const KEY_DELTAS = Object.freeze({
 
 /** Synthetic floor UI feedback only; Python remains authoritative for seating. */
 export function keyboardFloorMove(positions, id, key, shiftKey = false) {
-  const delta = KEY_DELTAS[key];
-  const point = positions?.[id];
-  if (!delta || !point) return null;
+  const delta = Object.prototype.hasOwnProperty.call(KEY_DELTAS, key) ? KEY_DELTAS[key] : undefined;
+  const point = positions && Object.prototype.hasOwnProperty.call(positions, id) ? positions[id] : undefined;
+  if (!delta || !point || !Number.isFinite(point.x) || !Number.isFinite(point.y)) return null;
   const step = shiftKey ? 5 : 1;
   const x = point.x + delta[0] * step;
   const y = point.y + delta[1] * step;
