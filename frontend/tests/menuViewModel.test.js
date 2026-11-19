@@ -21,7 +21,7 @@ test('accent-insensitive search supports composed and decomposed Unicode without
  const snapshot=JSON.stringify(accented);
  assert.deepEqual(filterMenu(accented,' CAFE ','drink'),[accented[0]]);
  assert.deepEqual(filterMenu(accented,'jalapeno','food'),[accented[1]]);
- assert.deepEqual(filterMenu(accented,'bru\\u0302le\\u0301e','food'),[accented[2]]);
+ assert.deepEqual(filterMenu(accented,'bru\u0302le\u0301e','food'),[accented[2]]);
  assert.deepEqual(filterMenu(accented,'cafe','food'),[]);
  assert.equal(JSON.stringify(accented),snapshot);
 });
