@@ -34,14 +34,14 @@ export function catalogCartLines(items, quantities) {
 export function changeCatalogQuantity(items, quantities, id, delta) {
   if (typeof id !== 'string' || !Number.isSafeInteger(delta) || ![-1,1].includes(delta))
     throw new TypeError('Invalid cart adjustment');
-  const current = quantities?.[id] ?? 0;
+  const current = quantities != null && Object.hasOwn(quantities, id) ? quantities[id] : 0;
   if (!Number.isSafeInteger(current) || current < 0 || current > MAX_QUANTITY)
     throw new RangeError('Invalid current quantity');
   const next = current + delta;
   if (next < 0 || next > MAX_QUANTITY) throw new RangeError('Cart quantity limit exceeded');
   const updated = {...quantities};
   if (next === 0) delete updated[id];
-  else updated[id] = next;
+  else Object.defineProperty(updated, id, {value:next, enumerable:true, writable:true, configurable:true});
   catalogCartLines(items, updated);
   return updated;
 }
