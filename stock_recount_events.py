@@ -40,8 +40,12 @@ def record_event(conn, *, event_id, venue_id, sku_id, recount_id, event_type,
         raise ValueError('invalid timestamp') from exc
     if parsed.tzinfo is None or parsed.utcoffset() is None:
         raise ValueError('timezone-aware timestamp required')
-    # Actor and timestamp MUST be resolved from trusted server-side sources.
-    with conn:
+    # Caller must resolve actor, venue, clock and revision from trusted storage.
+    # Acquire write lock BEFORE checking scope; reject caller-owned transactions.
+    if conn.in_transaction:
+        raise ValueError('record_event requires an idle SQLite connection')
+    conn.execute('BEGIN IMMEDIATE')
+    try:
         bound = conn.execute(
             'SELECT venue_id,sku_id FROM stock_recount_events WHERE recount_id=? LIMIT 1',
             (recount_id,)).fetchone()
@@ -53,6 +57,10 @@ def record_event(conn, *, event_id, venue_id, sku_id, recount_id, event_type,
              VALUES (?,?,?,?,?,?,?,?,?)""",
             (event_id,venue_id,sku_id,recount_id,event_type,actor_id,
              ledger_revision,quantity_milli,occurred_at))
+        conn.commit()
+    except BaseException:
+        conn.rollback()
+        raise
 
 def list_events(conn, *, venue_id, sku_id, recount_id):
     if not all(isinstance(x,str) and x.strip() for x in (venue_id,sku_id,recount_id)):
