@@ -117,3 +117,18 @@
   .ticket button { min-height:44px; }
   .reservation-results .line > b { margin-left:auto; }
 }
+
+/* Zoom and narrow viewport resilience for summary cards and table controls.
+   Synthetic UI presentation only; no seating rules or persistence live here. */
+.heading, .stepper, .metric, .total { min-width:0; }
+.heading > div, .heading h1, .metric strong, .metric span,
+.stepper > b, .total > b { min-width:0; overflow-wrap:anywhere; }
+.stepper { gap:12px; }
+.stepper > button { flex:0 0 auto; min-width:44px; min-height:44px; }
+.stepper > b { text-align:center; }
+@media (max-width:700px) {
+  .heading h1 { font-size:clamp(1.5rem,7vw,2rem); }
+  .metrics { grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr)); }
+  .metric { padding:16px; }
+  .total { flex-wrap:wrap; }
+}
