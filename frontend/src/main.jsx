@@ -28,7 +28,7 @@ function resetFloor(){setFloorPositions(initialFloorPositions);setFloorAnnouncem
 function onFloorPointerDown(event,id){if(event.button!==0)return;const node=event.currentTarget;const floor=node.closest('.floor');if(!floor)return;const bounds=floor.getBoundingClientRect();dragRef.current={id,bounds,startX:event.clientX,startY:event.clientY,origin:floorPositions[id],moved:false};node.setPointerCapture?.(event.pointerId);}
 function onFloorPointerMove(event){const drag=dragRef.current;if(!drag||!drag.origin)return;const point=pointerFloorPosition(drag.origin,{x:drag.startX,y:drag.startY},{x:event.clientX,y:event.clientY},drag.bounds);if(!point)return;if(Math.abs(point.x-drag.origin.x)+Math.abs(point.y-drag.origin.y)>0.5)drag.moved=true;if(drag.moved)reposition(drag.id,point.x,point.y);}
 function onFloorPointerUp(){dragRef.current=null;}
-function onFloorKeyDown(event,id){const result=keyboardFloorMove(floorPositions,id,event.key,event.shiftKey);if(!result)return;event.preventDefault();setFloorPositions(result.positions);setFloorAnnouncement(result.announcement);}
+function onFloorKeyDown(event,id){const result=keyboardFloorMove(floorPositions,id,event.key,event.shiftKey,event);if(!result)return;event.preventDefault();setFloorPositions(result.positions);setFloorAnnouncement(result.announcement);}
 const total=Object.entries(cart).reduce((n,[i,q])=>n+food[Number(i)][1]*q,0);
 const visibleFood=filterDemoDishes(food,category,search);
 const cartEntries=Object.entries(cart).filter(([,quantity])=>quantity>0);
