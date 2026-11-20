@@ -29,3 +29,17 @@ test('invalid pointer geometry is ignored instead of corrupting layout', () => {
   assert.equal(point,null);
   assert.equal(moveTable(initialFloorPositions,'T1',point?.x,point?.y),initialFloorPositions);
 });
+
+test('same proportional pointer drag behaves consistently across responsive floor dimensions', () => {
+  for (const [width, height] of [[300, 200], [900, 600], [1200, 400]]) {
+    const positions = Object.freeze({ T1: Object.freeze({ x: 25, y: 35 }), T2: Object.freeze({ x: 75, y: 75 }) });
+    const point = pointerFloorPosition(positions.T1, { x: 50, y: 60 },
+      { x: 50 + width * 0.15, y: 60 + height * 0.1 }, { width, height });
+    const next = moveTable(positions, 'T1', point.x, point.y);
+    assert.notEqual(next, positions);
+    assert.ok(Math.abs(next.T1.x - 40) < 1e-10);
+    assert.ok(Math.abs(next.T1.y - 45) < 1e-10);
+    assert.equal(next.T2, positions.T2);
+    assert.deepEqual(positions.T1, { x: 25, y: 35 });
+  }
+});
