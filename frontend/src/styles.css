@@ -83,3 +83,37 @@
   .primary, .ticket button { border: 2px solid ButtonText; }
   .skip-link:focus-visible { outline-color: Highlight; }
 }
+
+
+/* Long dish names, ticket identifiers and reservation details must remain
+   readable at 320px and with enlarged text, without horizontal page scroll. */
+.lanes > .panel,
+.ticket,
+.reservation-results,
+.reservation-results .line {
+  min-width:0;
+}
+.ticket,
+.ticket p,
+.reservation-results .line > span,
+.reservation-results .line > b {
+  overflow-wrap:anywhere;
+}
+.ticket button {
+  max-width:100%;
+  white-space:normal;
+  text-align:left;
+}
+.reservation-results {
+  list-style:none;
+  margin:0;
+  padding:0;
+}
+.reservation-results .line {
+  flex-wrap:wrap;
+  align-items:baseline;
+}
+@media (max-width:700px) {
+  .ticket button { min-height:44px; }
+  .reservation-results .line > b { margin-left:auto; }
+}
