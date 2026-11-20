@@ -1,0 +1,7 @@
+# 2026-11-20 22:00 Europe/Brussels — immutable recount event prototype
+
+One bounded inventory milestone: SQLite-backed append-only stock recount events, separate from the 21:00 approval preflight. `stock_recount_events.py` provides schema initialization, scoped append and scoped reads; `test_stock_recount_events.py` covers duplicate IDs/types, tenant mismatch, missing scope, timestamp/quantity validation, update/delete triggers and event sequencing.
+
+Events are **not** approvals, adjustments, physical measurements, certification or legal evidence. Values, identities and timestamps are fictional. The caller must derive the venue, actor, clock and ledger revision from trusted authenticated storage, not the request body. The prototype's read-before-write recount-scope binding is **not concurrency-safe across multiple SQLite connections**: a future transactional service must acquire a write lock with `BEGIN IMMEDIATE` before scope validation and append, and must independently authorize venue and manager grants. This prototype must not be publicly exposed.
+
+Local prototype tests: `python -m unittest -v test_stock_recount_events` — 12 passed; `python -m py_compile stock_recount_events.py test_stock_recount_events.py` — passed. The local test source was used to construct the GitHub files; no full repository regression suite or post-commit execution is claimed. Next: transaction-level concurrent-writer tests, then preflight integration with trusted revision lookup. No real data, suppliers, external communications, spending or deployment.
