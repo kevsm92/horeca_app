@@ -5,7 +5,9 @@ const KEY_DELTAS = Object.freeze({
 });
 
 /** Synthetic floor UI feedback only; Python remains authoritative for seating. */
-export function keyboardFloorMove(positions, id, key, shiftKey = false) {
+export function keyboardFloorMove(positions, id, key, shiftKey = false, modifiers = {}) {
+  // Preserve browser and assistive-technology shortcuts; only unmodified arrows and Shift+arrows move tables.
+  if (modifiers?.altKey || modifiers?.ctrlKey || modifiers?.metaKey) return null;
   const delta = Object.prototype.hasOwnProperty.call(KEY_DELTAS, key) ? KEY_DELTAS[key] : undefined;
   const point = positions && Object.prototype.hasOwnProperty.call(positions, id) ? positions[id] : undefined;
   if (!delta || !point || !Number.isFinite(point.x) || !Number.isFinite(point.y)) return null;
