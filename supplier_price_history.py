@@ -3,6 +3,7 @@
 Run: python -m unittest -v supplier_price_history
 """
 import sqlite3
+from datetime import datetime
 import unittest
 
 
@@ -35,6 +36,13 @@ def record_price_revision(db, venue_id, supplier_id, sku, price_cents, reason, r
         raise ValueError('nonempty scope, reason and timestamp required')
     if type(price_cents) is not int or price_cents < 0:
         raise ValueError('price must be nonnegative integer cents')
+    # Require canonical UTC to avoid ambiguous revision timestamps.
+    try:
+        parsed = datetime.strptime(recorded_at, '%Y-%m-%dT%H:%M:%SZ')
+    except ValueError as exc:
+        raise ValueError('recorded_at must be a valid UTC timestamp YYYY-MM-DDTHH:MM:SSZ') from exc
+    if parsed.strftime('%Y-%m-%dT%H:%M:%SZ') != recorded_at:
+        raise ValueError('recorded_at must be canonical UTC')
     with db:
         row = db.execute('''SELECT COALESCE(MAX(revision),0)+1 FROM supplier_price_revision
                             WHERE venue_id=? AND supplier_id=? AND sku=?''',
@@ -76,6 +84,14 @@ class PriceHistoryTests(unittest.TestCase):
                     "DELETE FROM supplier_price_revision"):
             with self.assertRaisesRegex(sqlite3.IntegrityError,'append-only'):
                 self.db.execute(sql)
+
+    def test_timestamp_validation_rejects_ambiguous_or_impossible_instants(self):
+        for timestamp in ('2026-11-21', '2026-11-21T01:00:00',
+                          '2026-11-21T02:00:00+01:00', '2026-02-30T01:00:00Z',
+                          '2026-11-21T1:00:00Z', '2026-11-21T01:00:00.000Z'):
+            with self.subTest(timestamp=timestamp), self.assertRaises(ValueError):
+                record_price_revision(self.db,'a','vendor','sku',110,'quote',timestamp)
+        self.assertEqual(self.db.execute('SELECT count(*) FROM supplier_price_revision').fetchone()[0],0)
 
     def test_invalid_prices_and_missing_provenance(self):
         for price in (-1,True,1.5):
