@@ -21,7 +21,15 @@ test('Node tooling is not configured as a production application server', () => 
   assert.ok(!scripts.some(([name]) => ['start', 'serve', 'server', 'api'].includes(name)));
   const runtimeDependencies = Object.keys(packageJson.dependencies ?? {});
   assert.deepEqual(runtimeDependencies.sort(), ['react', 'react-dom']);
-  const forbidden = ['express', '@nestjs/core', 'next', 'remix', 'fastify', 'koa', 'socket.io'];
+  // Reject common API/BFF, SSR, worker and database packages in either dependency set.
+  // Vite itself remains allowed in devDependencies as build/test tooling.
+  const forbidden = [
+    'express', '@nestjs/core', '@nestjs/platform-express', 'next', 'remix',
+    '@remix-run/node', '@remix-run/serve', 'fastify', 'koa', '@hapi/hapi',
+    'socket.io', 'ws', 'bull', 'bullmq',
+    '@prisma/client', 'prisma', 'mongoose', 'sequelize', 'typeorm',
+    'better-sqlite3', 'sqlite3', 'pg', 'mysql', 'mysql2'
+  ];
   for (const dependency of forbidden) {
     assert.equal(packageJson.dependencies?.[dependency], undefined);
     assert.equal(packageJson.devDependencies?.[dependency], undefined);
