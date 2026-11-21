@@ -46,9 +46,9 @@ class SupplierUnitComparisonTests(unittest.TestCase):
         for venue, ingredient in [('', 'flour'), ('a', ''), (None, 'flour')]:
             with self.assertRaises(ValueError):
                 compare_supplier_unit_prices(self.db, venue, ingredient)
-        self.offer('a','s1','bad','kg',0,100)
-        with self.assertRaises(ValueError):
-            compare_supplier_unit_prices(self.db,'a','flour')
+        with self.assertRaises(sqlite3.IntegrityError):
+            self.offer('a','s1','bad','kg',0,100)
+        self.db.rollback()
 
     def test_read_only(self):
         self.offer('a','s1','one','each',3,100)
