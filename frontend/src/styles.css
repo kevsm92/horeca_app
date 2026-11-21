@@ -132,3 +132,18 @@
   .metric { padding:16px; }
   .total { flex-wrap:wrap; }
 }
+
+/* Read-only Python catalog and POS drafts: preserve readable controls and
+   product descriptions at high zoom without implying checkout capability. */
+.dishes, .dish, .dish > div, .dish-foot, .filters { min-width:0; }
+.dish h3, .dish p, .dish-foot b, .cart-row span {
+  overflow-wrap:anywhere;
+}
+.dish-foot { flex-wrap:wrap; gap:10px; }
+.dish-foot button { min-height:44px; white-space:normal; }
+.filters input, .filters select { max-width:100%; }
+.filters button, .filters select { min-height:44px; }
+@media (max-width:700px) {
+  .dish { padding:16px; }
+  .dish-foot button { flex:1 1 auto; }
+}
