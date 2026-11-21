@@ -185,3 +185,14 @@ button:disabled:hover { background:#17384d; }
   button:disabled { opacity:1; color:GrayText; border-color:GrayText; }
   button:disabled:hover { background:ButtonFace; }
 }
+
+/* Task checklist: make the full checkbox row visibly keyboard-focused.
+   The outline follows the native input focus, including high-contrast mode. */
+.panel > label.line:focus-within {
+  outline:3px solid #69e3e0;
+  outline-offset:3px;
+  border-radius:6px;
+}
+@media (forced-colors:active) {
+  .panel > label.line:focus-within { outline-color:Highlight; }
+}
