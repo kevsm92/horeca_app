@@ -57,6 +57,29 @@ class MenuHttpTests(unittest.TestCase):
         self.app = make_app(lambda: sqlite3.connect(self.path), fail)
         self.assertEqual(self.call()[2], {'error': 'session_unavailable'})
 
+    def test_react_contract_and_kind_filter(self):
+        status, _, data = self.call()
+        self.assertEqual(status, '200 OK')
+        self.assertEqual({row['kind'] for row in data['items']}, {'food', 'drink'})
+        for row in data['items']:
+            self.assertEqual(set(row), {'item_id', 'kind', 'name', 'price_cents',
+                                        'currency', 'available', 'description'})
+            self.assertIs(type(row['price_cents']), int)
+        status, _, data = self.call(QUERY_STRING='kind=drink', HTTP_X_VENUE_ID='b')
+        self.assertEqual(status, '200 OK')
+        self.assertEqual(len(data['items']), 1)
+        self.assertEqual(data['items'][0]['kind'], 'drink')
+        self.assertEqual(data['items'][0]['currency'], 'EUR')
+
+    def test_bad_filter_is_rejected(self):
+        for query in ('kind=service', 'kind=', 'kind=food&kind=drink',
+                      'venue_id=b', 'kind=food&venue_id=b'):
+            with self.subTest(query=query):
+                status, _, data = self.call(QUERY_STRING=query)
+                self.assertEqual(status, '400 Bad Request')
+                self.assertEqual(data, {'error': 'invalid_filter'})
+
+
 
 if __name__ == '__main__':
     unittest.main()
