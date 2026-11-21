@@ -42,8 +42,8 @@ export default function CatalogPos(){
     {state.status==='loading'&&<p role="status">Loading authenticated menu…</p>}
     {state.status==='error'&&<><p role="alert">{state.error}</p><button type="button" onClick={()=>setRetry(n=>n+1)}>Retry catalog</button></>}
     {state.status==='ready'&&<>
-      <div className="filters">
-        <input aria-label="Search live POS catalog" value={query} onChange={e=>setQuery(e.target.value)} placeholder="Search food and drinks"/>
+      <div className="filters" role="search" aria-label="Filter authenticated venue catalog">
+        <input type="search" aria-label="Search live POS catalog" value={query} onChange={e=>setQuery(e.target.value)} placeholder="Search food and drinks"/>
         <select aria-label="Live POS product type" value={kind} onChange={e=>setKind(e.target.value)}><option value="all">All</option><option value="food">Food</option><option value="drink">Drinks</option></select>
         <button type="button" onClick={()=>setRetry(n=>n+1)}>Refresh catalog</button>
       </div>
