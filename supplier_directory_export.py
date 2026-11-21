@@ -1,6 +1,7 @@
 """Offline, tenant-scoped supplier SKU CSV preview; no network or purchasing."""
 import csv
 import io
+import unicodedata
 from supplier_directory import list_skus
 
 HEADERS = ('supplier_id', 'supplier_name', 'sku', 'unit', 'pack_quantity', 'price_cents', 'lead_days')
@@ -21,6 +22,10 @@ def export_supplier_skus_csv(db, venue_id, ingredient_id):
 
 
 def _safe_cell(value):
-    if isinstance(value, str) and value.lstrip(' \t\r\n').startswith(('=', '+', '-', '@')):
-        return "'" + value
+    if isinstance(value, str):
+        candidate = value.lstrip(' \t\r\n')
+        while candidate and unicodedata.category(candidate[0])[0] in ('Z', 'C'):
+            candidate = candidate[1:]
+        if candidate.startswith(('=', '+', '-', '@')):
+            return "'" + value
     return value
