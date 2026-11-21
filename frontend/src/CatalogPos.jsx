@@ -50,7 +50,7 @@ export default function CatalogPos(){
       <p role="status" className="muted">{shown.length} of {items.length} venue products shown</p>
       <div className="columns"><div className="dishes">
         {shown.map(item=><article className="dish" key={item.id}><div><small>{item.kind==='food'?'Food':'Drink'} · {item.available?'Available':'Unavailable'}</small><h3>{item.name}</h3>{item.description&&<p>{item.description}</p>}<div className="dish-foot"><b>{eur(item.priceCents)}</b><button type="button" disabled={!item.available} onClick={()=>adjust(item.id,1)} aria-label={'Add '+item.name+' to catalog draft'}>+ Add</button></div></div></article>)}
-        {shown.length===0&&<p>{items.length===0?'No products configured for this venue.':'No matching venue products.'}</p>}
+        {shown.length===0&&(items.length===0?<p>No products configured for this venue.</p>:<div><p>No matching venue products.</p><button type="button" onClick={()=>{setQuery('');setKind('all');}}>Clear catalog filters</button></div>)}
       </div><aside className="panel"><h3>Catalog draft</h3>
         {projection.lines.length===0&&<p className="muted">No catalog items selected.</p>}
         {projection.lines.map(line=><div className="cart-row" key={line.id}><span>{line.name} · {eur(line.lineCents)}</span><button type="button" aria-label={'Remove one '+line.name+' from catalog draft; '+line.quantity+' currently selected'} onClick={()=>adjust(line.id,-1)}>−</button><b aria-label={line.quantity+' '+line.name+' in catalog draft'}>{line.quantity}</b><button type="button" aria-label={'Add one '+line.name+' to catalog draft; '+line.quantity+' currently selected'} onClick={()=>adjust(line.id,1)}>+</button></div>)}
