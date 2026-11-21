@@ -18,7 +18,10 @@ export default function CatalogPos(){
     setState({status:'loading',items:[],error:''});
     setQuantities({});
     loadMenu({signal:controller.signal}).then(items=>{
-      if(!controller.signal.aborted)setState({status:'ready',items,error:''});
+      if(!controller.signal.aborted){
+        setState({status:'ready',items,error:''});
+        if(retry>0)setNotice('Catalog refreshed. The previous local draft was cleared.');
+      }
     }).catch(error=>{
       if(!controller.signal.aborted)setState({status:'error',items:[],error:error?.code==='AUTH'?'Sign in with menu access to view this catalog.':'Authenticated menu unavailable. No demo items substituted.'});
     });
