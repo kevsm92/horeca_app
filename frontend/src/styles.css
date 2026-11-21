@@ -196,3 +196,15 @@ button:disabled:hover { background:#17384d; }
 @media (forced-colors:active) {
   .panel > label.line:focus-within { outline-color:Highlight; }
 }
+
+/* Keep the fictional-venue DEMO marker visible on compact screens.
+   The original mobile rule hides both header spans, obscuring demo status. */
+@media (max-width:700px) {
+  header > span:last-child {
+    display:inline;
+    font-size:.8125rem;
+    font-weight:700;
+    color:#b7cfdb;
+    overflow-wrap:anywhere;
+  }
+}
