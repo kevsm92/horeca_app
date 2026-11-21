@@ -15,7 +15,16 @@ def initialize_history(db):
       revision INTEGER NOT NULL CHECK(revision > 0),
       price_cents INTEGER NOT NULL CHECK(price_cents >= 0),
       reason TEXT NOT NULL CHECK(length(trim(reason)) > 0),
-      recorded_at TEXT NOT NULL CHECK(length(trim(recorded_at)) > 0),
+      recorded_at TEXT NOT NULL CHECK(
+        length(recorded_at)=20
+        AND recorded_at GLOB
+          '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]T[0-9][0-9]:[0-9][0-9]:[0-9][0-9]Z'
+        AND substr(recorded_at,6,2) BETWEEN '01' AND '12'
+        AND substr(recorded_at,9,2) BETWEEN '01' AND '31'
+        AND substr(recorded_at,12,2) BETWEEN '00' AND '23'
+        AND substr(recorded_at,15,2) BETWEEN '00' AND '59'
+        AND substr(recorded_at,18,2) BETWEEN '00' AND '59'
+      ),
       PRIMARY KEY (venue_id,supplier_id,sku,revision),
       FOREIGN KEY (venue_id,supplier_id,sku)
         REFERENCES supplier_sku(venue_id,supplier_id,sku)
@@ -92,6 +101,19 @@ class PriceHistoryTests(unittest.TestCase):
             with self.subTest(timestamp=timestamp), self.assertRaises(ValueError):
                 record_price_revision(self.db,'a','vendor','sku',110,'quote',timestamp)
         self.assertEqual(self.db.execute('SELECT count(*) FROM supplier_price_revision').fetchone()[0],0)
+
+    def test_direct_sql_timestamp_shape_is_guarded(self):
+        # Database boundary must not accept offsets, local timestamps or malformed UTC.
+        for timestamp in ('2026-11-21', '2026-11-21T01:00:00+01:00',
+                          '2026-11-21T25:00:00Z', '2026-11-21T01:60:00Z',
+                          '2026-11-21T01:00:61Z', '2026-00-21T01:00:00Z'):
+            with self.subTest(timestamp=timestamp), self.assertRaises(sqlite3.IntegrityError):
+                self.db.execute('''INSERT INTO supplier_price_revision
+                    VALUES (?,?,?,?,?,?,?)''',
+                    ('a','vendor','sku',1,110,'synthetic quote',timestamp))
+        self.assertEqual(self.db.execute(
+            'SELECT count(*) FROM supplier_price_revision').fetchone()[0], 0)
+        record_price_revision(self.db,'a','vendor','sku',110,'quote','2026-11-21T01:00:00Z')
 
     def test_invalid_prices_and_missing_provenance(self):
         for price in (-1,True,1.5):
