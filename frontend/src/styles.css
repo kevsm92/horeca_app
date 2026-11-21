@@ -160,3 +160,16 @@
   .panel > .line > b { margin-left:auto; }
   .panel > label.line > span { flex:1 1 100%; }
 }
+
+
+/* Compact navigation at 200% zoom: retain a readable header and visible
+   keyboard focus in the horizontally scrollable SPA tab strip. */
+header { min-width:0; flex-wrap:wrap; }
+header > b, header > span { min-width:0; overflow-wrap:anywhere; }
+nav button { scroll-margin-inline:12px; }
+@media (max-width:700px) {
+  header { gap:8px 16px; padding:12px 15px; }
+  header b { font-size:clamp(1.25rem,5vw,1.625rem); }
+  nav { scrollbar-width:thin; }
+  nav button:focus-visible { outline-offset:-3px; }
+}
