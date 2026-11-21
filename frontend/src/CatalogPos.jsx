@@ -51,6 +51,7 @@ export default function CatalogPos(){
       </div><aside className="panel"><h3>Catalog draft</h3>
         {projection.lines.length===0&&<p className="muted">No catalog items selected.</p>}
         {projection.lines.map(line=><div className="cart-row" key={line.id}><span>{line.name} · {eur(line.lineCents)}</span><button type="button" aria-label={'Remove one '+line.name} onClick={()=>adjust(line.id,-1)}>−</button><b>{line.quantity}</b><button type="button" aria-label={'Add one '+line.name} onClick={()=>adjust(line.id,1)}>+</button></div>)}
+        <p className="sr-only" role="status" aria-live="polite">{projection.lines.reduce((count,line)=>count+line.quantity,0)} items in catalog draft; total {eur(projection.totalCents)}. No order has been submitted.</p>
         <div className="total"><span>Draft total</span><b>{eur(projection.totalCents)}</b></div>
         <button type="button" disabled={projection.lines.length===0} onClick={()=>{setQuantities({});setNotice('Draft cleared.');}}>Clear draft</button>
         {notice&&<p role="status">{notice}</p>}
