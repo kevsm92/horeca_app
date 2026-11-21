@@ -29,11 +29,13 @@ class MenuHttpTests(unittest.TestCase):
         return response[0][0], response[0][1], json.loads(body)
 
     def test_authenticated_read_and_server_venue(self):
-        status, headers, data = self.call(HTTP_X_VENUE_ID='b', QUERY_STRING='venue_id=b')
+        status, headers, data = self.call(HTTP_X_VENUE_ID='b')
         self.assertEqual(status, '200 OK')
         self.assertEqual(len(data['items']), 2)
         self.assertEqual(headers['Cache-Control'], 'no-store')
         self.assertEqual(data['items'][0]['currency'], 'EUR')
+        # A client-controlled venue selector must never override the session.
+        self.assertEqual(self.call(QUERY_STRING='venue_id=b')[0], '400 Bad Request')
 
     def test_unauthenticated_and_forbidden(self):
         self.principal = None
