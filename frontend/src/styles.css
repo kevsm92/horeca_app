@@ -147,3 +147,16 @@
   .dish { padding:16px; }
   .dish-foot button { flex:1 1 auto; }
 }
+
+/* Narrow-screen operations lists: keep long ingredient names, shift labels,
+   quantities and SOP descriptions readable at large text sizes. Demo only. */
+.panel > .line { min-width:0; gap:12px; }
+.panel > .line > b, .panel > .line > span { min-width:0; overflow-wrap:anywhere; }
+.panel > label.line { cursor:pointer; }
+.panel > label.line > span { display:flex; align-items:flex-start; gap:10px; }
+.panel > label.line input[type="checkbox"] { flex:0 0 auto; width:20px; height:20px; margin:2px 0 0; accent-color:#69e3e0; }
+@media (max-width:700px) {
+  .panel > .line { flex-wrap:wrap; align-items:flex-start; }
+  .panel > .line > b { margin-left:auto; }
+  .panel > label.line > span { flex:1 1 100%; }
+}
