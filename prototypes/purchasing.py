@@ -7,6 +7,7 @@ class Status(str, Enum):
     SUBMITTED = "submitted"
     APPROVED = "approved"
     REJECTED = "rejected"
+    CANCELLED = "cancelled"
 
 @dataclass(frozen=True)
 class Requisition:
@@ -38,6 +39,10 @@ def transition(req: Requisition, *, venue_id: str, actor_id: str, actor_role: st
     """Caller must persist under a transaction/revision lock."""
     if req.venue_id != venue_id:
         raise PermissionError("venue mismatch")
+    if action == "cancel" and req.status in (Status.DRAFT, Status.SUBMITTED):
+        if actor_id != req.requester_id and actor_role != "purchasing_manager":
+            raise PermissionError("requester or purchasing manager required")
+        return replace(req, status=Status.CANCELLED)
     if action == "submit" and req.status is Status.DRAFT and actor_id == req.requester_id:
         return replace(req, status=Status.SUBMITTED)
     if action in ("approve", "reject") and req.status is Status.SUBMITTED:
