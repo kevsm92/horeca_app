@@ -37,5 +37,21 @@ class PurchasingTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 Requisition("r", "v", "u", "s", "sku", qty, price)
 
+    def test_cancel_unapproved_only(self):
+        cancelled = transition(self.req, venue_id="venue-a", actor_id="worker-1", actor_role="staff", action="cancel")
+        self.assertEqual(cancelled.status, Status.CANCELLED)
+        submitted = transition(self.req, venue_id="venue-a", actor_id="worker-1", actor_role="staff", action="submit")
+        manager_cancelled = transition(submitted, venue_id="venue-a", actor_id="manager-2", actor_role="purchasing_manager", action="cancel")
+        self.assertEqual(manager_cancelled.status, Status.CANCELLED)
+        with self.assertRaises(PermissionError):
+            transition(submitted, venue_id="venue-b", actor_id="manager-2", actor_role="purchasing_manager", action="cancel")
+        with self.assertRaises(PermissionError):
+            transition(submitted, venue_id="venue-a", actor_id="other", actor_role="staff", action="cancel")
+        approved = transition(submitted, venue_id="venue-a", actor_id="manager-2", actor_role="purchasing_manager", action="approve")
+        with self.assertRaises(ValueError):
+            transition(approved, venue_id="venue-a", actor_id="worker-1", actor_role="staff", action="cancel")
+        with self.assertRaises(ValueError):
+            transition(cancelled, venue_id="venue-a", actor_id="worker-1", actor_role="staff", action="submit")
+
 if __name__ == "__main__":
     unittest.main()
