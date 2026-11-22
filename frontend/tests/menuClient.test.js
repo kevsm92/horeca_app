@@ -9,3 +9,23 @@ test('fails closed on unauthorized or unavailable response',async()=>{for(const 
 test('rejects malformed menu records and duplicates',()=>{for(const bad of [{...item,price_cents:1.5},{...item,available:1},{...item,item_id:'../bad'},{...item,kind:'other'},{...item,name:''},{...item,price_cents:-1}])assert.throws(()=>parseMenuResponse({items:[bad]}));assert.throws(()=>parseMenuResponse({items:[item,item]}));});
 test('rejects HTML, invalid filters and missing items',async()=>{await assert.rejects(loadMenu({fetchImpl:async()=>response(200,[item],'text/html')}),/not JSON/);await assert.rejects(loadMenu({kind:'venue=other',fetchImpl:async()=>response()}),/filter/);assert.throws(()=>parseMenuResponse({}));});
 test('supports empty catalog and abort propagation',async()=>{assert.deepEqual(await loadMenu({fetchImpl:async()=>response(200,[])}),[]);const c=new AbortController();c.abort();await assert.rejects(loadMenu({signal:c.signal,fetchImpl:async(_url,{signal})=>{if(signal.aborted)throw new Error('aborted');}}),/aborted/);});
+
+test('network errors and malformed JSON fail closed without synthetic fallback',async()=>{
+  await assert.rejects(loadMenu({fetchImpl:async()=>{throw new TypeError('Network unavailable');}}),/Network unavailable/);
+  await assert.rejects(loadMenu({fetchImpl:async()=>({...response(),json:async()=>{throw new SyntaxError('Invalid JSON');}})}),/Invalid JSON/);
+  await assert.rejects(loadMenu({fetchImpl:async()=>({...response(),json:async()=>({items:'not an array'})})}),/Invalid menu response/);
+});
+test('catalog contract enforces bounded records and nonnegative integer-cent prices',()=>{
+  assert.throws(()=>parseMenuResponse({items:Array.from({length:5001},()=>item)}),/Invalid menu response/);
+  for(const bad of [{...item,price_cents:10000001},{...item,price_cents:NaN},{...item,name:'x'.repeat(201)},{...item,description:'x'.repeat(2001)}])
+    assert.throws(()=>parseMenuResponse({items:[bad]}),/Invalid menu item/);
+  assert.deepEqual(parseMenuResponse({items:[{...item,description:null}]} )[0].description,null);
+});
+test('menu read uses only an explicit JSON Accept header and forwards abort signal',async()=>{
+  const controller=new AbortController();
+  let options;
+  await loadMenu({signal:controller.signal,fetchImpl:async(_url,request)=>{options=request;return response();}});
+  assert.deepEqual(options.headers,{Accept:'application/json'});
+  assert.equal(options.signal,controller.signal);
+  assert.equal(options.body,undefined);
+});
