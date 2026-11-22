@@ -67,3 +67,24 @@ test('authenticated menu reads bypass browser caches to avoid stale venue catalo
   assert.equal(request.credentials,'same-origin');
   assert.equal(request.redirect,'error');
 });
+
+test('cancelled menu body failure reports AbortError rather than stale JSON error',async()=>{
+  const controller=new AbortController();
+  let rejectBody;
+  const pending=loadMenu({signal:controller.signal,fetchImpl:async()=>({
+    ...response(),
+    json:()=>new Promise((_resolve,reject)=>{rejectBody=reject;})
+  })});
+  await Promise.resolve();
+  assert.equal(typeof rejectBody,'function');
+  controller.abort();
+  rejectBody(new SyntaxError('Late invalid JSON'));
+  await assert.rejects(pending,error=>error?.name==='AbortError');
+});
+
+test('uncancelled menu body failure retains its original error',async()=>{
+  const controller=new AbortController();
+  await assert.rejects(loadMenu({signal:controller.signal,fetchImpl:async()=>({
+    ...response(),json:async()=>{throw new SyntaxError('Invalid JSON');}
+  })}),error=>error instanceof SyntaxError&&error.message==='Invalid JSON');
+});
