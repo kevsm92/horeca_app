@@ -44,3 +44,25 @@ test('catalog search includes optional descriptions without changing kind filter
  assert.deepEqual(filterMenu(catalog,'soup','food'),[catalog[2]]);
  assert.equal(JSON.stringify(catalog),snapshot);
 });
+
+test('multi-term search spans product name and description regardless of term order',()=>{
+ const catalog=[
+  {id:'one',kind:'food',name:'Autumn Bowl',description:'Roasted pumpkin and sage'},
+  {id:'two',kind:'drink',name:'Pumpkin Latte',description:'Warm spices'},
+  {id:'three',kind:'food',name:'Autumn Salad',description:'Fresh herbs'}
+ ];
+ const snapshot=JSON.stringify(catalog);
+ assert.deepEqual(filterMenu(catalog,'sage autumn','food'),[catalog[0]]);
+ assert.deepEqual(filterMenu(catalog,'  PUMPKIN   bowl  ','all'),[catalog[0]]);
+ assert.deepEqual(filterMenu(catalog,'pumpkin','drink'),[catalog[1]]);
+ assert.deepEqual(filterMenu(catalog,'sage autumn','drink'),[]);
+ assert.equal(JSON.stringify(catalog),snapshot);
+});
+
+test('rejects non-string catalog search queries without mutating products',()=>{
+ const snapshot=JSON.stringify(items);
+ for(const query of [null,42,{},['soup']]){
+  assert.throws(()=>filterMenu(items,query,'all'),TypeError);
+ }
+ assert.equal(JSON.stringify(items),snapshot);
+});
