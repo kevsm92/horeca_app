@@ -59,3 +59,11 @@ test('menu read cancelled after fetch does not parse response body',async()=>{
   await assert.rejects(loadMenu({signal:controller.signal,fetchImpl}),error=>error?.name==='AbortError');
   assert.equal(reads,0);
 });
+
+test('authenticated menu reads bypass browser caches to avoid stale venue catalogs',async()=>{
+  let request;
+  await loadMenu({fetchImpl:async(_url,options)=>{request=options;return response();}});
+  assert.equal(request.cache,'no-store');
+  assert.equal(request.credentials,'same-origin');
+  assert.equal(request.redirect,'error');
+});
