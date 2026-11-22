@@ -43,12 +43,13 @@ export default function CatalogPos(){
     {state.status==='error'&&<><p role="alert">{state.error}</p><button type="button" onClick={()=>setRetry(n=>n+1)}>Retry catalog</button></>}
     {state.status==='ready'&&<>
       <div className="filters" role="search" aria-label="Filter authenticated venue catalog">
-        <input type="search" aria-label="Search live POS catalog" value={query} onChange={e=>setQuery(e.target.value)} placeholder="Search food and drinks"/>
+        <input type="search" aria-label="Search live POS catalog" aria-controls="catalog-pos-results" value={query} onChange={e=>setQuery(e.target.value)} placeholder="Search food and drinks"/>
+        {query.length>0&&<button type="button" onClick={()=>setQuery('')} aria-label="Clear live catalog search">Clear search</button>}
         <select aria-label="Live POS product type" value={kind} onChange={e=>setKind(e.target.value)}><option value="all">All</option><option value="food">Food</option><option value="drink">Drinks</option></select>
         <button type="button" onClick={()=>setRetry(n=>n+1)}>Refresh catalog</button>
       </div>
       <p role="status" className="muted">{shown.length} of {items.length} venue products shown</p>
-      <div className="columns"><div className="dishes">
+      <div className="columns"><div id="catalog-pos-results" className="dishes">
         {shown.map(item=><article className="dish" key={item.id}><div><small>{item.kind==='food'?'Food':'Drink'} · {item.available?'Available':'Unavailable'}</small><h3>{item.name}</h3>{item.description&&<p>{item.description}</p>}<div className="dish-foot"><b>{eur(item.priceCents)}</b><button type="button" disabled={!item.available} onClick={()=>adjust(item.id,1)} aria-label={'Add '+item.name+' to catalog draft'}>+ Add</button></div></div></article>)}
         {shown.length===0&&(items.length===0?<p role="status">No products configured for this venue.</p>:<div><p role="status">No matching venue products. Clear the filters to show all products.</p><button type="button" onClick={()=>{setQuery('');setKind('all');}}>Clear catalog filters</button></div>)}
       </div><aside className="panel"><h3>Catalog draft</h3>
