@@ -11,6 +11,7 @@ export default function CatalogPos(){
   const [query,setQuery]=useState('');
   const searchRef=useRef(null);
   const [kind,setKind]=useState('all');
+  const [availableOnly,setAvailableOnly]=useState(false);
   const [quantities,setQuantities]=useState({});
   const [notice,setNotice]=useState('');
   const [retry,setRetry]=useState(0);
@@ -29,7 +30,7 @@ export default function CatalogPos(){
     return ()=>controller.abort();
   },[retry]);
   const items=state.status==='ready'?state.items:[];
-  const shown=filterMenu(items,query,kind);
+  const shown=filterMenu(items,query,kind).filter(item=>!availableOnly||item.available);
   let projection;
   try{projection=catalogCartLines(items,quantities);}
   catch{projection={lines:[],totalCents:0};}
@@ -47,12 +48,13 @@ export default function CatalogPos(){
         <input ref={searchRef} type="search" aria-label="Search live POS catalog" aria-controls="catalog-pos-results" value={query} onChange={e=>setQuery(e.target.value)} onKeyDown={e=>{if(e.key==='Escape'&&query){e.preventDefault();setQuery('');}}} aria-keyshortcuts="Escape" placeholder="Search food and drinks"/>
         {query.length>0&&<button type="button" onClick={()=>{setQuery('');searchRef.current?.focus();}} aria-label="Clear live catalog search">Clear search</button>}
         <select aria-label="Live POS product type" value={kind} onChange={e=>setKind(e.target.value)}><option value="all">All</option><option value="food">Food</option><option value="drink">Drinks</option></select>
+        <label><input type="checkbox" checked={availableOnly} onChange={e=>setAvailableOnly(e.target.checked)}/> Available only</label>
         <button type="button" onClick={()=>setRetry(n=>n+1)}>Refresh catalog</button>
       </div>
       <p role="status" className="muted">{shown.length} of {items.length} venue products shown</p>
       <div className="columns"><div id="catalog-pos-results" className="dishes">
         {shown.map(item=><article className="dish" key={item.id}><div><small>{item.kind==='food'?'Food':'Drink'} · {item.available?'Available':'Unavailable'}</small><h3>{item.name}</h3>{item.description&&<p>{item.description}</p>}<div className="dish-foot"><b>{eur(item.priceCents)}</b><button type="button" disabled={!item.available} onClick={()=>adjust(item.id,1)} aria-label={'Add '+item.name+' to catalog draft'}>+ Add</button></div></div></article>)}
-        {shown.length===0&&(items.length===0?<p role="status">No products configured for this venue.</p>:<div><p role="status">No matching venue products. Clear the filters to show all products.</p><button type="button" onClick={()=>{setQuery('');setKind('all');searchRef.current?.focus();}}>Clear catalog filters</button></div>)}
+        {shown.length===0&&(items.length===0?<p role="status">No products configured for this venue.</p>:<div><p role="status">No matching venue products. Clear the filters to show all products.</p><button type="button" onClick={()=>{setQuery('');setKind('all');setAvailableOnly(false);searchRef.current?.focus();}}>Clear catalog filters</button></div>)}
       </div><aside className="panel"><h3>Catalog draft</h3>
         {projection.lines.length===0&&<p className="muted">No catalog items selected.</p>}
         {projection.lines.map(line=><div className="cart-row" key={line.id}><span>{line.name} · {eur(line.lineCents)}</span><button type="button" aria-label={'Remove one '+line.name+' from catalog draft; '+line.quantity+' currently selected'} onClick={()=>adjust(line.id,-1)}>−</button><b aria-label={line.quantity+' '+line.name+' in catalog draft'}>{line.quantity}</b><button type="button" aria-label={'Add one '+line.name+' to catalog draft; '+line.quantity+' currently selected'} onClick={()=>adjust(line.id,1)}>+</button></div>)}
