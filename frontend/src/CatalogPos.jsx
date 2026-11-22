@@ -43,7 +43,7 @@ export default function CatalogPos(){
     {state.status==='error'&&<><p role="alert">{state.error}</p><button type="button" onClick={()=>setRetry(n=>n+1)}>Retry catalog</button></>}
     {state.status==='ready'&&<>
       <div className="filters" role="search" aria-label="Filter authenticated venue catalog">
-        <input type="search" aria-label="Search live POS catalog" aria-controls="catalog-pos-results" value={query} onChange={e=>setQuery(e.target.value)} placeholder="Search food and drinks"/>
+        <input type="search" aria-label="Search live POS catalog" aria-controls="catalog-pos-results" value={query} onChange={e=>setQuery(e.target.value)} onKeyDown={e=>{if(e.key==='Escape'&&query){e.preventDefault();setQuery('');}}} aria-keyshortcuts="Escape" placeholder="Search food and drinks"/>
         {query.length>0&&<button type="button" onClick={()=>setQuery('')} aria-label="Clear live catalog search">Clear search</button>}
         <select aria-label="Live POS product type" value={kind} onChange={e=>setKind(e.target.value)}><option value="all">All</option><option value="food">Food</option><option value="drink">Drinks</option></select>
         <button type="button" onClick={()=>setRetry(n=>n+1)}>Refresh catalog</button>
