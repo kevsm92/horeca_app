@@ -120,3 +120,25 @@ test('straight and curly apostrophes match punctuation-free menu searches',()=>{
  assert.deepEqual(filterMenu(catalog,'chefs special','drink'),[]);
  assert.equal(JSON.stringify(catalog),snapshot);
 });
+
+test('available-only catalog filter composes with search and type without mutating server records',()=>{
+ const catalog=[
+  {id:'a',kind:'food',name:'Tomato soup',available:true},
+  {id:'b',kind:'food',name:'Tomato salad',available:false},
+  {id:'c',kind:'drink',name:'Tomato juice',available:true},
+  {id:'d',kind:'drink',name:'Water',available:false}
+ ];
+ const snapshot=JSON.stringify(catalog);
+ assert.deepEqual(filterMenu(catalog,'tomato','food',true),[catalog[0]]);
+ assert.deepEqual(filterMenu(catalog,'tomato','all',true),[catalog[0],catalog[2]]);
+ assert.deepEqual(filterMenu(catalog,'','all',true),[catalog[0],catalog[2]]);
+ assert.deepEqual(filterMenu(catalog,'','food',false),[catalog[0],catalog[1]]);
+ assert.throws(()=>filterMenu(catalog,'','all','true'),TypeError);
+ assert.equal(JSON.stringify(catalog),snapshot);
+});
+
+test('available-only filtering skips searching unavailable product fields',()=>{
+ const unavailable={kind:'food',available:false,get name(){throw Error('unavailable name should not be read');}};
+ const available={kind:'food',available:true,name:'Soup'};
+ assert.deepEqual(filterMenu([unavailable,available],'soup','food',true),[available]);
+});
