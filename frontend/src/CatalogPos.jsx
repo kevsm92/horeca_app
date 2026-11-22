@@ -32,8 +32,9 @@ export default function CatalogPos(){
   const items=state.status==='ready'?state.items:[];
   const shown=filterMenu(items,query,kind).filter(item=>!availableOnly||item.available);
   let projection;
+  let draftInvalid=false;
   try{projection=catalogCartLines(items,quantities);}
-  catch{projection={lines:[],totalCents:0};}
+  catch{draftInvalid=true;projection={lines:[],totalCents:0};}
   function adjust(id,delta){
     try{const next=changeCatalogQuantity(items,quantities,id,delta);setQuantities(next);setNotice('');}
     catch{setNotice('Item unavailable or cart quantity limit reached. Refresh the catalog.');}
@@ -56,11 +57,12 @@ export default function CatalogPos(){
         {shown.map(item=><article className="dish" key={item.id}><div><small>{item.kind==='food'?'Food':'Drink'} · {item.available?'Available':'Unavailable'}</small><h3>{item.name}</h3>{item.description&&<p>{item.description}</p>}<div className="dish-foot"><b>{eur(item.priceCents)}</b><button type="button" disabled={!item.available} onClick={()=>adjust(item.id,1)} aria-label={'Add '+item.name+' to catalog draft'}>+ Add</button></div></div></article>)}
         {shown.length===0&&(items.length===0?<p role="status">No products configured for this venue.</p>:<div><p role="status">No matching venue products. Clear the filters to show all products.</p><button type="button" onClick={()=>{setQuery('');setKind('all');setAvailableOnly(false);searchRef.current?.focus();}}>Clear catalog filters</button></div>)}
       </div><aside className="panel"><h3>Catalog draft</h3>
+        {draftInvalid&&<p role="alert">This draft no longer matches the authenticated catalog. Clear it or refresh the catalog before selecting products.</p>}
         {projection.lines.length===0&&<p className="muted">No catalog items selected.</p>}
         {projection.lines.map(line=><div className="cart-row" key={line.id}><span>{line.name} · {eur(line.lineCents)}</span><button type="button" aria-label={'Remove one '+line.name+' from catalog draft; '+line.quantity+' currently selected'} onClick={()=>adjust(line.id,-1)}>−</button><b aria-label={line.quantity+' '+line.name+' in catalog draft'}>{line.quantity}</b><button type="button" aria-label={'Add one '+line.name+' to catalog draft; '+line.quantity+' currently selected'} onClick={()=>adjust(line.id,1)}>+</button></div>)}
         <p className="sr-only" role="status" aria-live="polite">{projection.lines.reduce((count,line)=>count+line.quantity,0)} items in catalog draft; total {eur(projection.totalCents)}. No order has been submitted.</p>
         <div className="total"><span>Draft total</span><b>{eur(projection.totalCents)}</b></div>
-        <button type="button" disabled={projection.lines.length===0} onClick={()=>{setQuantities({});setNotice('Draft cleared.');}}>Clear draft</button>
+        <button type="button" disabled={!draftInvalid&&projection.lines.length===0} onClick={()=>{setQuantities({});setNotice('Draft cleared.');}}>Clear draft</button>
         {notice&&<p role="status">{notice}</p>}
         <p className="muted">Not an order or receipt. This draft is lost on refresh; no payment is processed.</p>
       </aside></div>
