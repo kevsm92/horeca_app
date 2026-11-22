@@ -106,3 +106,17 @@ test('typographic dash and slash search works across product descriptions',()=>{
  assert.deepEqual(filterMenu(catalog,'lime mint','food'),[]);
  assert.equal(JSON.stringify(catalog),snapshot);
 });
+
+test('straight and curly apostrophes match punctuation-free menu searches',()=>{
+ const catalog=[
+  {id:'one',kind:'food',name:'Chef’s special',description:"Today's soup"},
+  {id:'two',kind:'drink',name:"Bartender's choice",description:'House favourite'}
+ ];
+ const snapshot=JSON.stringify(catalog);
+ assert.deepEqual(filterMenu(catalog,'chefs special','food'),[catalog[0]]);
+ assert.deepEqual(filterMenu(catalog,"chef's special",'food'),[catalog[0]]);
+ assert.deepEqual(filterMenu(catalog,'todays soup','food'),[catalog[0]]);
+ assert.deepEqual(filterMenu(catalog,'bartenders choice','drink'),[catalog[1]]);
+ assert.deepEqual(filterMenu(catalog,'chefs special','drink'),[]);
+ assert.equal(JSON.stringify(catalog),snapshot);
+});
