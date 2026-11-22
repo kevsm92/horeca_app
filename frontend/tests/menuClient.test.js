@@ -88,3 +88,20 @@ test('uncancelled menu body failure retains its original error',async()=>{
     ...response(),json:async()=>{throw new SyntaxError('Invalid JSON');}
   })}),error=>error instanceof SyntaxError&&error.message==='Invalid JSON');
 });
+
+test('cancelled menu transport failure reports AbortError',async()=>{
+  const controller=new AbortController();
+  let rejectFetch;
+  const pending=loadMenu({signal:controller.signal,fetchImpl:()=>new Promise((_resolve,reject)=>{rejectFetch=reject;})});
+  assert.equal(typeof rejectFetch,'function');
+  controller.abort();
+  rejectFetch(new TypeError('Late network failure'));
+  await assert.rejects(pending,error=>error?.name==='AbortError');
+});
+
+test('uncancelled menu transport failure retains its original error',async()=>{
+  const controller=new AbortController();
+  await assert.rejects(loadMenu({signal:controller.signal,fetchImpl:async()=>{
+    throw new TypeError('Network unavailable');
+  }}),error=>error instanceof TypeError&&error.message==='Network unavailable');
+});
