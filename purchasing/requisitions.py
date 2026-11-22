@@ -154,6 +154,34 @@ def approve_submitted(
     return expected_revision + 1
 
 
+def reject_submitted(
+    connection: sqlite3.Connection, *, venue_id: str,
+    requisition_id: str, reviewer_id: str, expected_revision: int,
+) -> int:
+    """Reject a submitted offline requisition without deleting its history.
+
+    The authenticated caller MUST independently verify reviewer approval
+    authority for this venue. Requesters cannot reject their own submissions.
+    This is not an HTTP authorization boundary. Returns the new revision.
+    """
+    if not all(isinstance(v, str) and v.strip()
+               for v in (venue_id, requisition_id, reviewer_id)):
+        raise ValueError("venue, requisition and reviewer are required")
+    if type(expected_revision) is not int or expected_revision <= 0:
+        raise ValueError("expected_revision must be a positive integer")
+    with connection:
+        result = connection.execute(
+            """UPDATE purchase_requisitions
+               SET status = 'rejected', revision = revision + 1
+               WHERE id = ? AND venue_id = ? AND status = 'submitted'
+                 AND requester_id <> ? AND revision = ?""",
+            (requisition_id, venue_id, reviewer_id, expected_revision),
+        )
+        if result.rowcount != 1:
+            raise ValueError("not submitted, same requester, wrong venue or revision conflict")
+    return expected_revision + 1
+
+
 if __name__ == "__main__":
     import unittest
 
@@ -255,5 +283,35 @@ if __name__ == "__main__":
             self.assertEqual(self.db.execute(
                 "SELECT status, revision FROM purchase_requisitions WHERE id=?",
                 (rid,)).fetchone(), ("approved", 3))
+
+        def test_rejection_is_venue_scoped_and_revision_guarded(self):
+            rid = create_draft(
+                self.db, venue_id="venue-a", requester_id="fictional-requester",
+                supplier_id="fictional-supplier", lines=[("MILK", 2, 100)],
+            )
+            submit_draft(self.db, venue_id="venue-a", requisition_id=rid,
+                         requester_id="fictional-requester", expected_revision=1)
+            for changes in (
+                {"venue_id": "venue-b"},
+                {"reviewer_id": "fictional-requester"},
+                {"expected_revision": 1},
+            ):
+                args = dict(venue_id="venue-a", requisition_id=rid,
+                            reviewer_id="fictional-manager", expected_revision=2)
+                args.update(changes)
+                with self.assertRaises(ValueError):
+                    reject_submitted(self.db, **args)
+            self.assertEqual(reject_submitted(
+                self.db, venue_id="venue-a", requisition_id=rid,
+                reviewer_id="fictional-manager", expected_revision=2), 3)
+            with self.assertRaises(ValueError):
+                reject_submitted(self.db, venue_id="venue-a", requisition_id=rid,
+                                 reviewer_id="fictional-manager", expected_revision=3)
+            with self.assertRaises(ValueError):
+                approve_submitted(self.db, venue_id="venue-a", requisition_id=rid,
+                                  approver_id="fictional-manager", expected_revision=3)
+            self.assertEqual(self.db.execute(
+                "SELECT status, revision FROM purchase_requisitions WHERE id=?",
+                (rid,)).fetchone(), ("rejected", 3))
 
     unittest.main()
