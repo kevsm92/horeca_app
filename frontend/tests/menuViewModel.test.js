@@ -81,3 +81,14 @@ test('multi-term catalog search reads each searchable field once per candidate',
  assert.equal(names,1);
  assert.equal(descriptions,1);
 });
+
+test('hyphen and slash separated menu terms match space-separated input',()=>{
+ const catalog=[{id:'one',kind:'food',name:'Gluten-free bread',description:'House-baked daily'},{id:'two',kind:'drink',name:'Orange/lemon spritz',description:null},{id:'three',kind:'food',name:'Gluten bread',description:null}];
+ const snapshot=JSON.stringify(catalog);
+ assert.deepEqual(filterMenu(catalog,'gluten free','food'),[catalog[0]]);
+ assert.deepEqual(filterMenu(catalog,'house baked','food'),[catalog[0]]);
+ assert.deepEqual(filterMenu(catalog,'orange lemon','drink'),[catalog[1]]);
+ assert.deepEqual(filterMenu(catalog,'gluten-free','food'),[catalog[0]]);
+ assert.deepEqual(filterMenu(catalog,'orange/lemon','food'),[]);
+ assert.equal(JSON.stringify(catalog),snapshot);
+});
