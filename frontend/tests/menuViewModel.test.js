@@ -156,3 +156,17 @@ test('comma, parentheses and sentence punctuation are searchable word boundaries
  assert.deepEqual(filterMenu(catalog,'lime mint','drink',true),[]);
  assert.equal(JSON.stringify(catalog),snapshot);
 });
+
+test('ampersand and plus separators match menu search terms without altering catalog',()=>{
+ const catalog=[
+  {id:'food',kind:'food',name:'Fish & chips',description:'Salt + vinegar',available:true},
+  {id:'drink',kind:'drink',name:'Gin + tonic',description:'Lime & ice',available:false}
+ ];
+ const snapshot=JSON.stringify(catalog);
+ assert.deepEqual(filterMenu(catalog,'fish chips','food',true),[catalog[0]]);
+ assert.deepEqual(filterMenu(catalog,'salt vinegar','food'),[catalog[0]]);
+ assert.deepEqual(filterMenu(catalog,'gin tonic','drink'),[catalog[1]]);
+ assert.deepEqual(filterMenu(catalog,'lime ice','drink',true),[]);
+ assert.deepEqual(filterMenu(catalog,'fish & chips','drink'),[]);
+ assert.equal(JSON.stringify(catalog),snapshot);
+});
