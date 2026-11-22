@@ -142,3 +142,17 @@ test('available-only filtering skips searching unavailable product fields',()=>{
  const available={kind:'food',available:true,name:'Soup'};
  assert.deepEqual(filterMenu([unavailable,available],'soup','food',true),[available]);
 });
+
+test('comma, parentheses and sentence punctuation are searchable word boundaries',()=>{
+ const catalog=[
+  {id:'food',kind:'food',name:'Soup (tomato, basil)',description:'Fresh crème; herbs',available:true},
+  {id:'drink',kind:'drink',name:'Lime: mint. cooler',available:false}
+ ];
+ const snapshot=JSON.stringify(catalog);
+ assert.deepEqual(filterMenu(catalog,'tomato basil','food',true),[catalog[0]]);
+ assert.deepEqual(filterMenu(catalog,'soup (tomato, basil)','food'),[catalog[0]]);
+ assert.deepEqual(filterMenu(catalog,'creme herbs','food'),[catalog[0]]);
+ assert.deepEqual(filterMenu(catalog,'lime mint cooler','drink'),[catalog[1]]);
+ assert.deepEqual(filterMenu(catalog,'lime mint','drink',true),[]);
+ assert.equal(JSON.stringify(catalog),snapshot);
+});
