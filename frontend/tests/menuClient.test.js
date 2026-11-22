@@ -29,3 +29,21 @@ test('menu read uses only an explicit JSON Accept header and forwards abort sign
   assert.equal(options.signal,controller.signal);
   assert.equal(options.body,undefined);
 });
+
+test('late menu JSON response is rejected after cancellation, not exposed as venue data',async()=>{
+  const controller=new AbortController();
+  let resolveBody;
+  const fetchImpl=async()=>({...response(),json:()=>new Promise(resolve=>{resolveBody=resolve;})});
+  const pending=loadMenu({fetchImpl,signal:controller.signal});
+  await Promise.resolve();
+  assert.equal(typeof resolveBody,'function');
+  controller.abort();
+  resolveBody({items:[item]});
+  await assert.rejects(pending,error=>error?.name==='AbortError');
+});
+
+test('menu JSON response succeeds when the request is not cancelled',async()=>{
+  const controller=new AbortController();
+  assert.deepEqual(await loadMenu({fetchImpl:async()=>response(),signal:controller.signal}),
+    parseMenuResponse({items:[item]}));
+});
