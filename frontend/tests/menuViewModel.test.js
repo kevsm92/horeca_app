@@ -34,3 +34,13 @@ test('search tolerates repeated and nonbreaking whitespace in catalog and input'
  assert.deepEqual(filterMenu(catalog,'coffee','food'),[]);
  assert.equal(JSON.stringify(catalog),snapshot);
 });
+
+test('catalog search includes optional descriptions without changing kind filtering',()=>{
+ const catalog=[{id:'one',kind:'food',name:'Seasonal plate',description:'Roasted aubergine with herbs'},{id:'two',kind:'drink',name:'House special',description:'Café au lait'},{id:'three',kind:'food',name:'Soup',description:null}];
+ const snapshot=JSON.stringify(catalog);
+ assert.deepEqual(filterMenu(catalog,'aubergine','food'),[catalog[0]]);
+ assert.deepEqual(filterMenu(catalog,'cafe','drink'),[catalog[1]]);
+ assert.deepEqual(filterMenu(catalog,'cafe','food'),[]);
+ assert.deepEqual(filterMenu(catalog,'soup','food'),[catalog[2]]);
+ assert.equal(JSON.stringify(catalog),snapshot);
+});
