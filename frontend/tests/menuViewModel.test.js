@@ -66,3 +66,18 @@ test('rejects non-string catalog search queries without mutating products',()=>{
  }
  assert.equal(JSON.stringify(items),snapshot);
 });
+
+test('empty search and excluded product types avoid reading searchable fields',()=>{
+ const food={id:'food',kind:'food',get name(){throw Error('name should not be read');},get description(){throw Error('description should not be read');}};
+ const drink={id:'drink',kind:'drink',name:'Mint Tea',description:'Fresh mint'};
+ assert.deepEqual(filterMenu([food,drink],'','all'),[food,drink]);
+ assert.deepEqual(filterMenu([food,drink],'mint','drink'),[drink]);
+});
+
+test('multi-term catalog search reads each searchable field once per candidate',()=>{
+ let names=0,descriptions=0;
+ const food={kind:'food',get name(){names++;return 'Autumn Bowl';},get description(){descriptions++;return 'Roasted pumpkin and sage';}};
+ assert.deepEqual(filterMenu([food],'pumpkin autumn sage','food'),[food]);
+ assert.equal(names,1);
+ assert.equal(descriptions,1);
+});
