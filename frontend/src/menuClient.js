@@ -18,7 +18,7 @@ export async function loadMenu({fetchImpl=globalThis.fetch,signal,kind}={}){
   if(kind!==undefined&&!['food','drink'].includes(kind))throw new TypeError('Invalid menu filter');
   if(signal?.aborted)throw new DOMException('The request was aborted.', 'AbortError');
   const url='/api/v1/menu-items'+(kind?'?kind='+kind:'');
-  const response=await fetchImpl(url,{method:'GET',credentials:'same-origin',redirect:'error',headers:{Accept:'application/json'},signal});
+  const response=await fetchImpl(url,{method:'GET',credentials:'same-origin',cache:'no-store',redirect:'error',headers:{Accept:'application/json'},signal});
   if(signal?.aborted)throw new DOMException('The request was aborted.', 'AbortError');
   if(!response||typeof response.status!=='number')throw new Error('Invalid menu HTTP response');
   if(response.status===401||response.status===403){const error=new Error('Menu authorization required');error.code='AUTH';throw error;}
