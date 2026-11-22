@@ -30,7 +30,7 @@ export default function CatalogPos(){
     return ()=>controller.abort();
   },[retry]);
   const items=state.status==='ready'?state.items:[];
-  const shown=filterMenu(items,query,kind).filter(item=>!availableOnly||item.available);
+  const shown=filterMenu(items,query,kind,availableOnly);
   let projection;
   let draftInvalid=false;
   try{projection=catalogCartLines(items,quantities);}
