@@ -24,7 +24,13 @@ export async function loadMenu({fetchImpl=globalThis.fetch,signal,kind}={}){
   if(response.status===401||response.status===403){const error=new Error('Menu authorization required');error.code='AUTH';throw error;}
   if(!response.ok){const error=new Error('Menu unavailable');error.code='UNAVAILABLE';throw error;}
   if(!/^application\/json(?:\s*;|\s*$)/i.test(response.headers?.get?.('content-type')||''))throw new TypeError('Menu response is not JSON');
-  const payload=await response.json();
+  let payload;
+  try { payload=await response.json(); }
+  catch (error) {
+    // Cancellation wins over a late JSON parsing/network error from an obsolete view.
+    if(signal?.aborted)throw new DOMException('The request was aborted.', 'AbortError');
+    throw error;
+  }
   // A cancelled request must never publish a late response from a previous view/session.
   if(signal?.aborted)throw new DOMException('The request was aborted.', 'AbortError');
   return parseMenuResponse(payload);
