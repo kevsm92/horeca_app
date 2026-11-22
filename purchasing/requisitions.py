@@ -96,6 +96,36 @@ def list_drafts(connection: sqlite3.Connection, *, venue_id: str) -> list[tuple]
     ).fetchall()
 
 
+
+def submit_draft(
+    connection: sqlite3.Connection, *, venue_id: str,
+    requisition_id: str, requester_id: str, expected_revision: int,
+) -> int:
+    """Submit only an owned draft at its expected revision.
+
+    This is an offline domain operation, not an HTTP authorization boundary.
+    All identity values MUST come from a verified server-side authorization
+    context. A failed compare-and-swap never changes the requisition.
+    Returns the new revision.
+    """
+    if not all(isinstance(v, str) and v.strip()
+               for v in (venue_id, requisition_id, requester_id)):
+        raise ValueError("venue, requisition and requester are required")
+    if type(expected_revision) is not int or expected_revision <= 0:
+        raise ValueError("expected_revision must be a positive integer")
+    with connection:
+        result = connection.execute(
+            """UPDATE purchase_requisitions
+               SET status = 'submitted', revision = revision + 1
+               WHERE id = ? AND venue_id = ? AND requester_id = ?
+                 AND status = 'draft' AND revision = ?""",
+            (requisition_id, venue_id, requester_id, expected_revision),
+        )
+        if result.rowcount != 1:
+            raise ValueError("draft not found, not owned, or revision conflict")
+    return expected_revision + 1
+
+
 if __name__ == "__main__":
     import unittest
 
@@ -141,5 +171,34 @@ if __name__ == "__main__":
                 self.db.execute("SELECT COUNT(*) FROM purchase_requisitions")
                 .fetchone()[0], 0,
             )
+
+
+        def test_submit_draft_enforces_owner_venue_and_revision(self):
+            rid = create_draft(
+                self.db, venue_id="venue-a", requester_id="fictional-requester",
+                supplier_id="fictional-supplier", lines=[("FLOUR", 1, 150)],
+            )
+            for changes in (
+                {"venue_id": "venue-b"},
+                {"requester_id": "another-requester"},
+                {"expected_revision": 2},
+            ):
+                args = dict(venue_id="venue-a", requisition_id=rid,
+                            requester_id="fictional-requester",
+                            expected_revision=1)
+                args.update(changes)
+                with self.assertRaises(ValueError):
+                    submit_draft(self.db, **args)
+            self.assertEqual(submit_draft(
+                self.db, venue_id="venue-a", requisition_id=rid,
+                requester_id="fictional-requester", expected_revision=1), 2)
+            with self.assertRaises(ValueError):
+                submit_draft(self.db, venue_id="venue-a", requisition_id=rid,
+                             requester_id="fictional-requester",
+                             expected_revision=1)
+            self.assertEqual(self.db.execute(
+                "SELECT status, revision FROM purchase_requisitions WHERE id=?",
+                (rid,)).fetchone(), ("submitted", 2))
+            self.assertEqual(list_drafts(self.db, venue_id="venue-a"), [])
 
     unittest.main()
