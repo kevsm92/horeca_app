@@ -3,5 +3,5 @@ const searchKey = value => value.normalize('NFD').replace(/\p{M}/gu, '').replace
 export function filterMenu(items,query='',kind='all'){
   if(!Array.isArray(items)||typeof query!=='string'||!['all','food','drink'].includes(kind))throw new TypeError('Invalid menu filter');
   const terms=searchKey(query).split(' ').filter(Boolean);
-  return items.filter(item=>(kind==='all'||item.kind===kind)&&terms.every(term=>searchKey(item.name).includes(term)));
+  return items.filter(item=>(kind==='all'||item.kind===kind)&&terms.every(term=>searchKey([item.name,item.description??''].join(' ')).includes(term)));
 }
