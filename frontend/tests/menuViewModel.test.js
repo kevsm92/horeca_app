@@ -92,3 +92,17 @@ test('hyphen and slash separated menu terms match space-separated input',()=>{
  assert.deepEqual(filterMenu(catalog,'orange/lemon','food'),[]);
  assert.equal(JSON.stringify(catalog),snapshot);
 });
+
+test('typographic dash and slash search works across product descriptions',()=>{
+ const catalog=[
+  {id:'one',kind:'food',name:'Chef’s special',description:'Slow–roasted vegetables / crème fraîche'},
+  {id:'two',kind:'drink',name:'Lime—mint cooler',description:'Alcohol-free'},
+  {id:'three',kind:'food',name:'Vegetable soup',description:'Served hot'}
+ ];
+ const snapshot=JSON.stringify(catalog);
+ assert.deepEqual(filterMenu(catalog,'slow roasted creme fraiche','food'),[catalog[0]]);
+ assert.deepEqual(filterMenu(catalog,'lime mint','drink'),[catalog[1]]);
+ assert.deepEqual(filterMenu(catalog,'alcohol free','drink'),[catalog[1]]);
+ assert.deepEqual(filterMenu(catalog,'lime mint','food'),[]);
+ assert.equal(JSON.stringify(catalog),snapshot);
+});
