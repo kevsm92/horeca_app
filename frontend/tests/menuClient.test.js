@@ -47,3 +47,15 @@ test('menu JSON response succeeds when the request is not cancelled',async()=>{
   assert.deepEqual(await loadMenu({fetchImpl:async()=>response(),signal:controller.signal}),
     parseMenuResponse({items:[item]}));
 });
+
+test('pre-aborted menu read never sends a request',async()=>{
+  const controller=new AbortController();controller.abort();let calls=0;
+  await assert.rejects(loadMenu({signal:controller.signal,fetchImpl:async()=>{calls++;return response();}}),error=>error?.name==='AbortError');
+  assert.equal(calls,0);
+});
+test('menu read cancelled after fetch does not parse response body',async()=>{
+  const controller=new AbortController();let reads=0;
+  const fetchImpl=async()=>{controller.abort();return {...response(),json:async()=>{reads++;return {items:[item]};}};};
+  await assert.rejects(loadMenu({signal:controller.signal,fetchImpl}),error=>error?.name==='AbortError');
+  assert.equal(reads,0);
+});
