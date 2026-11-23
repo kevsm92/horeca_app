@@ -65,3 +65,34 @@ Avoid converting normal POS/KDS work into tasks. Pilot on synthetic flows and me
 - Existing menu/table integrations and scheduled milestones remain unaffected.
 
 Before any real use: Belgian labor/payroll/privacy and mandatory reporting review; no inference that Time punch equals Dimona declaration.
+
+## Shift-triggered configurable task assignments (v1.2 extension)
+**Purpose:** give an individually accountable set of opening/closing, compliance and exception tasks to the employee rostered for a qualifying shift, while keeping normal POS/KDS work out of the task engine.
+
+### Configuration
+A manager creates versioned `task_templates` and `task_template_items` scoped to business, venue, station, role/capability, shift kind (OPENING/CLOSING), effective dates and checklist revision. Examples: kitchen closer -> fryer condition and temperature reading, surface sanitation; dining-room opener -> arrange tables and place cutlery. Items define instruction/SOP link, due offset/window, type (CONFIRMATION, MEASUREMENT, EXCEPTION), required evidence, allowed value/unit and manager verification policy. Templates can be enabled, disabled or cloned per venue; edits apply to future assignments only.
+
+### Assignment rules
+The main HORECA scheduling service is the authority for planned shifts; HORECA Time remains authoritative only for attendance and does **not** own tasks. When a rostered shift is published/changed, the task service deterministically matches template version to venue, station, role and shift kind, then creates a `shift_checklist_instance` and per-item `task_assignments` tied to employee_id and shift_id. Idempotency key includes shift_id, template_revision and item_id. No duplicates on event replay. A published roster change triggers explicit reassignment/cancellation with audit trail; completed records remain attributable to the original actor. No automatic reassignment based solely on clock-in/out.
+
+If a station has multiple qualifying staff, a manager-configured assignment policy determines a named owner, e.g. shift lead, named station assignment or explicit manager selection; never silently assign every task to everyone. Manager can delegate with reason and auditable event. A task is visible only to authorized employee(s) and venue managers.
+
+### Lifecycle and evidence
+PENDING -> IN_PROGRESS -> SUBMITTED -> VERIFIED (when required); alternatives BLOCKED, OVERDUE, CANCELLED, REOPENED. A simple setup confirmation may go directly from SUBMITTED to COMPLETED when policy allows. Store assigned_to, completed_by, completed_at server timestamp, reviewer, review time, original template revision, shift, venue, evidence, reason and immutable audit events. Completed-by may differ from assigned-to, with an explicit takeover/delegation record.
+For measured safety tasks, capture actual numeric reading, unit, method, threshold/policy version, timestamp and any corrective action. A confirmation checkbox is not proof of acceptable temperature; out-of-range measurements create an exception requiring authorized review. Fryer temperature threshold must be defined by the venue's documented procedure; do not hardcode example temperatures as compliance rules.
+Managers see per-shift, per-station and per-employee completion, missed checks, exceptions and verification queue. Personal task screen displays only a short checklist at appropriate opening/closing times; do not interrupt active service except for safety-critical exceptions.
+
+### Proposed task domain tables
+`task_templates`, `task_template_items`, `shift_checklist_instances`, `task_assignments`, `task_submissions`, `task_measurements`, `task_reviews`, `task_exceptions`, `task_audit_events`, `task_outbox`. Foreign reference to shift and employee IDs with business/venue authorization; versioned snapshots avoid retroactive template changes. The task domain belongs to main HORECA, not the separate Time database.
+
+### Suggested API contracts
+GET /api/v1/staff/me/shift-tasks
+POST /api/v1/staff/tasks/{id}/submit
+GET /api/v1/manager/shift-tasks?shift_id=...
+POST /api/v1/manager/tasks/{id}/reassign
+POST /api/v1/manager/tasks/{id}/review
+GET/POST/PUT /api/v1/manager/task-templates (versioned, scoped, RBAC)
+All mutations enforce idempotency, scope, version checks and audit events.
+
+### Validation and rollout
+Test synthetic kitchen closing and dining-room opening shifts, assignment determinism, template versioning, schedule change/reassignment, missed tasks, duplicate events, cross-tenant denial, numeric measurement validation and exception review. Introduce during Nov 24–26 task taxonomy work; add roster-triggered assignments alongside Nov 27–Dec workforce work; pilot Feb–Mar 2027. Do not activate real staff data, external notifications, paid services or actual compliance certification.
