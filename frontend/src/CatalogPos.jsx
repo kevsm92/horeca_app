@@ -53,10 +53,10 @@ export default function CatalogPos(){
         <button type="button" onClick={()=>setRetry(n=>n+1)}>Refresh catalog</button>
       </div>
       <p role="status" aria-live="polite" aria-atomic="true" className="muted">{shown.length} of {items.length} venue products shown</p>
-      <div className="columns"><div id="catalog-pos-results" className="dishes">
+      <div className="columns"><div id="catalog-pos-results" className="dishes" role="region" aria-label="Filtered catalog products">
         {shown.map(item=><article className="dish" key={item.id}><div><small>{item.kind==='food'?'Food':'Drink'} · {item.available?'Available':'Unavailable'}</small><h3>{item.name}</h3>{item.description&&<p>{item.description}</p>}<div className="dish-foot"><b>{eur(item.priceCents)}</b><button type="button" disabled={!item.available} onClick={()=>adjust(item.id,1)} aria-label={'Add '+item.name+' to catalog draft'}>+ Add</button></div></div></article>)}
         {shown.length===0&&(items.length===0?<p role="status">No products configured for this venue.</p>:<div><p role="status">No matching venue products. Clear the filters to show all products.</p><button type="button" onClick={()=>{setQuery('');setKind('all');setAvailableOnly(false);searchRef.current?.focus();}}>Clear catalog filters</button></div>)}
-      </div><aside className="panel"><h3>Catalog draft</h3>
+      </div><aside className="panel" aria-label="Local catalog draft"><h3>Catalog draft</h3>
         {draftInvalid&&<p role="alert">This draft no longer matches the authenticated catalog. Clear it or refresh the catalog before selecting products.</p>}
         {projection.lines.length===0&&<p className="muted">No catalog items selected.</p>}
         {projection.lines.map(line=><div className="cart-row" key={line.id}><span>{line.name} · {eur(line.lineCents)}</span><button type="button" aria-label={'Remove one '+line.name+' from catalog draft; '+line.quantity+' currently selected'} onClick={()=>adjust(line.id,-1)}>−</button><b aria-label={line.quantity+' '+line.name+' in catalog draft'}>{line.quantity}</b><button type="button" aria-label={'Add one '+line.name+' to catalog draft; '+line.quantity+' currently selected'} onClick={()=>adjust(line.id,1)}>+</button></div>)}
