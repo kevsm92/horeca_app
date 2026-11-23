@@ -55,3 +55,20 @@ test('removes an entire local draft line without mutating the source or other li
   assert.throws(()=>removeCatalogLine(items,draft,'missing'),/Unknown cart line/);
   assert.throws(()=>removeCatalogLine(items,{'sold-out':1},'sold-out'),/unavailable/);
 });
+
+test('removing prototype-like cart IDs preserves ordinary object semantics',()=>{
+  const special=[
+    {id:'__proto__',name:'Synthetic Special',priceCents:275,available:true},
+    {id:'constructor',name:'Synthetic Constructor',priceCents:125,available:true}
+  ];
+  const original=changeCatalogQuantity(special,changeCatalogQuantity(special,{},'__proto__',1),'constructor',1);
+  const withoutProto=removeCatalogLine(special,original,'__proto__');
+  assert.equal(Object.getPrototypeOf(withoutProto),Object.prototype);
+  assert.equal(Object.hasOwn(withoutProto,'__proto__'),false);
+  assert.equal(Object.hasOwn(withoutProto,'constructor'),true);
+  assert.equal(catalogCartLines(special,withoutProto).totalCents,125);
+  const empty=removeCatalogLine(special,withoutProto,'constructor');
+  assert.deepEqual(empty,{});
+  assert.equal(Object.hasOwn(original,'__proto__'),true);
+  assert.equal(catalogCartLines(special,original).totalCents,400);
+});
