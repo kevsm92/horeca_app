@@ -72,3 +72,12 @@ test('removing prototype-like cart IDs preserves ordinary object semantics',()=>
   assert.equal(Object.hasOwn(original,'__proto__'),true);
   assert.equal(catalogCartLines(special,original).totalCents,400);
 });
+
+test('quantity adjustments reject malformed or stale existing drafts',()=>{
+  for (const draft of [null, [], {'missing':1}, {'sold-out':1}, {'demo-food-1':0}, {'demo-food-1':'2'}]) {
+    assert.throws(()=>changeCatalogQuantity(items,draft,'demo-drink-1',1));
+  }
+  const valid={'demo-food-1':1};
+  assert.deepEqual(changeCatalogQuantity(items,valid,'demo-drink-1',1),{'demo-food-1':1,'demo-drink-1':1});
+  assert.deepEqual(valid,{'demo-food-1':1});
+});
