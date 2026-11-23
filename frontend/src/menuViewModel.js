@@ -1,5 +1,5 @@
 /** Read-only view model for authenticated Python menu catalog. */
-const searchKey = value => value.normalize('NFD').replace(/\p{M}/gu, '').replace(/['’]/gu, '').replace(/[\p{Pd}/,;:().&+!?"“”«»]/gu, ' ').replace(/\s+/gu, ' ').trim().toLocaleLowerCase();
+const searchKey = value => value.normalize('NFD').replace(/\p{M}/gu, '').replace(/['’]/gu, '').replace(/[\p{P}\p{S}]/gu, ' ').replace(/\s+/gu, ' ').trim().toLocaleLowerCase();
 export function filterMenu(items,query='',kind='all',availableOnly=false){
   if(!Array.isArray(items)||typeof query!=='string'||!['all','food','drink'].includes(kind)||typeof availableOnly!=='boolean')throw new TypeError('Invalid menu filter');
   const terms=searchKey(query).split(' ').filter(Boolean);
