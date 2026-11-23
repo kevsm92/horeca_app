@@ -34,6 +34,8 @@ export function catalogCartLines(items, quantities) {
 export function changeCatalogQuantity(items, quantities, id, delta) {
   if (typeof id !== 'string' || !Number.isSafeInteger(delta) || ![-1,1].includes(delta))
     throw new TypeError('Invalid cart adjustment');
+  // Reject stale or malformed drafts before applying any local adjustment.
+  catalogCartLines(items, quantities);
   const current = quantities != null && Object.hasOwn(quantities, id) ? quantities[id] : 0;
   if (!Number.isSafeInteger(current) || current < 0 || current > MAX_QUANTITY)
     throw new RangeError('Invalid current quantity');
