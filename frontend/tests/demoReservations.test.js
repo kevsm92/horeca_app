@@ -21,3 +21,11 @@ test('no matching reservations gives empty state without mutating input', () => 
   assert.deepEqual(filterDemoReservations(demoReservations, 'not present'), []);
   assert.equal(JSON.stringify(demoReservations), before);
 });
+test('punctuation and accents do not prevent synthetic reservation matches', () => {
+  const source = [Object.freeze({id:'demo-r3', name:'Zoë D’Angelo!', table:'T-4', time:'18:30'})];
+  const before = JSON.stringify(source);
+  assert.deepEqual(filterDemoReservations(source, 'zoe d angelo').map(r=>r.id), ['demo-r3']);
+  assert.deepEqual(filterDemoReservations(source, '"t 4"').map(r=>r.id), ['demo-r3']);
+  assert.deepEqual(filterDemoReservations(source, '18:30').map(r=>r.id), ['demo-r3']);
+  assert.equal(JSON.stringify(source), before);
+});
