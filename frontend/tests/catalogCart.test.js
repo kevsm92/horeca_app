@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {catalogCartLines,changeCatalogQuantity} from '../src/catalogCart.js';
+import {catalogCartLines,changeCatalogQuantity,removeCatalogLine} from '../src/catalogCart.js';
 const items=[{id:'demo-food-1',name:'Fictional Soup',priceCents:650,available:true},{id:'demo-drink-1',name:'Fictional Water',priceCents:320,available:true},{id:'sold-out',name:'Unavailable',priceCents:200,available:false}];
 test('uses stable Python catalog IDs and integer-cent line totals',()=>{
   assert.deepEqual(catalogCartLines(items,{'demo-food-1':2,'demo-drink-1':1}),{lines:[{id:'demo-food-1',name:'Fictional Soup',quantity:2,unitPriceCents:650,lineCents:1300},{id:'demo-drink-1',name:'Fictional Water',quantity:1,unitPriceCents:320,lineCents:320}],totalCents:1620});
@@ -44,4 +44,14 @@ test('prototype-like stable IDs remain ordinary cart keys without prototype muta
   const third=changeCatalogQuantity(special,second,'__proto__',-1);
   assert.equal(Object.hasOwn(third,'__proto__'),false);
   assert.equal(catalogCartLines(special,third).totalCents,125);
+});
+
+test('removes an entire local draft line without mutating the source or other lines',()=>{
+  const draft={'demo-food-1':3,'demo-drink-1':2};
+  const next=removeCatalogLine(items,draft,'demo-food-1');
+  assert.deepEqual(next,{'demo-drink-1':2});
+  assert.deepEqual(draft,{'demo-food-1':3,'demo-drink-1':2});
+  assert.equal(catalogCartLines(items,next).totalCents,640);
+  assert.throws(()=>removeCatalogLine(items,draft,'missing'),/Unknown cart line/);
+  assert.throws(()=>removeCatalogLine(items,{'sold-out':1},'sold-out'),/unavailable/);
 });
