@@ -14,7 +14,7 @@ test('99 units at the per-item cap remain a valid local projection', () => {
 test('exact aggregate total limit is accepted but the next cent is rejected', () => {
   const items = [
     item,
-    { id: 'synthetic-extra', name: 'Synthetic extra', priceCents: 100000, available: true }
+    { id: 'synthetic-extra', name: 'Synthetic extra', priceCents: 1000000, available: true }
   ];
   assert.equal(catalogCartLines(items, { 'synthetic-item': 99, 'synthetic-extra': 10 }).totalCents, 1000000000);
   assert.throws(() => catalogCartLines(items, { 'synthetic-item': 99, 'synthetic-extra': 11 }), /total limit/);
@@ -27,7 +27,7 @@ test('client projections reject unsafe and non-integer prices rather than roundi
 });
 
 test('invalid aggregate adjustment preserves the original local draft', () => {
-  const items = [item, { id: 'synthetic-extra', name: 'Synthetic extra', priceCents: 100000, available: true }];
+  const items = [item, { id: 'synthetic-extra', name: 'Synthetic extra', priceCents: 1000000, available: true }];
   const original = Object.freeze({ 'synthetic-item': 99, 'synthetic-extra': 10 });
   assert.throws(() => changeCatalogQuantity(items, original, 'synthetic-extra', 1), /total limit/);
   assert.deepEqual(original, { 'synthetic-item': 99, 'synthetic-extra': 10 });
