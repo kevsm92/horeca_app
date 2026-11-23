@@ -1,7 +1,7 @@
 import React,{useEffect,useRef,useState} from 'react';
 import {loadMenu} from './menuClient.js';
 import {filterMenu} from './menuViewModel.js';
-import {catalogCartLines,changeCatalogQuantity} from './catalogCart.js';
+import {catalogCartLines,changeCatalogQuantity,removeCatalogLine} from './catalogCart.js';
 
 const eur=cents=>new Intl.NumberFormat('en-BE',{style:'currency',currency:'EUR'}).format(cents/100);
 
@@ -39,6 +39,10 @@ export default function CatalogPos(){
     try{const next=changeCatalogQuantity(items,quantities,id,delta);setQuantities(next);setNotice('');}
     catch{setNotice('Item unavailable or cart quantity limit reached. Refresh the catalog.');}
   }
+  function removeLine(id){
+    try{setQuantities(removeCatalogLine(items,quantities,id));setNotice('Item removed from local draft.');}
+    catch{setNotice('Unable to remove item. Refresh the catalog or clear the draft.');}
+  }
   return <section className="panel" aria-label="Authenticated catalog POS">
     <h2>Live catalog · Order draft</h2>
     <p className="muted">Venue-scoped Python catalog. Draft only: no kitchen submission, checkout or payment. Prices must be recalculated by the server before any future order is accepted.</p>
@@ -60,7 +64,7 @@ export default function CatalogPos(){
       </div><aside className="panel" aria-label="Local catalog draft"><h3>Catalog draft</h3>
         {draftInvalid&&<p role="alert">This draft no longer matches the authenticated catalog. Clear it or refresh the catalog before selecting products.</p>}
         {projection.lines.length===0&&<p className="muted">No catalog items selected.</p>}
-        {projection.lines.map(line=><div className="cart-row" key={line.id}><span>{line.name} · {eur(line.lineCents)}</span><button type="button" aria-label={'Remove one '+line.name+' from catalog draft; '+line.quantity+' currently selected'} onClick={()=>adjust(line.id,-1)}>−</button><b aria-label={line.quantity+' '+line.name+' in catalog draft'}>{line.quantity}</b><button type="button" disabled={draftInvalid||line.quantity>=99} aria-label={'Add one '+line.name+' to catalog draft; '+line.quantity+' currently selected'} onClick={()=>adjust(line.id,1)}>+</button></div>)}
+        {projection.lines.map(line=><div className="cart-row" key={line.id}><span>{line.name} · {eur(line.lineCents)}</span><button type="button" aria-label={'Remove one '+line.name+' from catalog draft; '+line.quantity+' currently selected'} onClick={()=>adjust(line.id,-1)}>−</button><b aria-label={line.quantity+' '+line.name+' in catalog draft'}>{line.quantity}</b><button type="button" aria-label={'Remove all '+line.quantity+' '+line.name+' from catalog draft'} onClick={()=>removeLine(line.id)}>Remove item</button><button type="button" disabled={draftInvalid||line.quantity>=99} aria-label={'Add one '+line.name+' to catalog draft; '+line.quantity+' currently selected'} onClick={()=>adjust(line.id,1)}>+</button></div>)}
         <p className="sr-only" role="status" aria-live="polite">{projection.lines.reduce((count,line)=>count+line.quantity,0)} items in catalog draft; total {eur(projection.totalCents)}. No order has been submitted.</p>
         <div className="total"><span>Draft total</span><b>{eur(projection.totalCents)}</b></div>
         <button type="button" disabled={!draftInvalid&&projection.lines.length===0} onClick={()=>{setQuantities({});setNotice('Draft cleared.');}}>Clear draft</button>
