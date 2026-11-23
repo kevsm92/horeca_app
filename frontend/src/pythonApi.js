@@ -36,6 +36,8 @@ export function createPythonTablesApi(fetchImpl = globalThis.fetch) {
   }
   return Object.freeze({
     async listTables({ signal } = {}) {
+      // An already-cancelled view must not initiate a request, even with injected fetch.
+      if (signal?.aborted) throw new DOMException('The request was aborted.', 'AbortError');
       let response;
       try {
         // Relative URL and same-origin credentials avoid external hosts and leaked tokens.
