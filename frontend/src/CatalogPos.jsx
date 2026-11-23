@@ -50,6 +50,7 @@ export default function CatalogPos(){
         {query.length>0&&<button type="button" onClick={()=>{setQuery('');searchRef.current?.focus();}} aria-label="Clear live catalog search">Clear search</button>}
         <select aria-label="Live POS product type" value={kind} onChange={e=>setKind(e.target.value)}><option value="all">All</option><option value="food">Food</option><option value="drink">Drinks</option></select>
         <label><input type="checkbox" checked={availableOnly} onChange={e=>setAvailableOnly(e.target.checked)}/> Available only</label>
+        {(query.trim()!==''||kind!=='all'||availableOnly)&&<button type="button" onClick={()=>{setQuery('');setKind('all');setAvailableOnly(false);searchRef.current?.focus();}} aria-label="Reset all catalog filters">Reset filters</button>}
         <button type="button" onClick={()=>setRetry(n=>n+1)}>Refresh catalog</button>
       </div>
       <p role="status" aria-live="polite" aria-atomic="true" className="muted">{shown.length} of {items.length} venue products shown</p>
