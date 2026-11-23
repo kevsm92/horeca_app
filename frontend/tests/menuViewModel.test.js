@@ -170,3 +170,16 @@ test('ampersand and plus separators match menu search terms without altering cat
  assert.deepEqual(filterMenu(catalog,'fish & chips','drink'),[]);
  assert.equal(JSON.stringify(catalog),snapshot);
 });
+
+test('international punctuation and currency symbols are word boundaries in menu search',()=>{
+ const catalog=[
+  {id:'a',kind:'food',name:'¿Sopa? ¡Picante!',description:'€12 · special',available:true},
+  {id:'b',kind:'drink',name:'Tea—mint',description:'Fresh',available:false}
+ ];
+ const snapshot=JSON.stringify(catalog);
+ assert.deepEqual(filterMenu(catalog,'sopa picante','food',true),[catalog[0]]);
+ assert.deepEqual(filterMenu(catalog,'12 special','food',true),[catalog[0]]);
+ assert.deepEqual(filterMenu(catalog,'tea mint','drink',true),[]);
+ assert.deepEqual(filterMenu(catalog,'tea mint','drink',false),[catalog[1]]);
+ assert.equal(JSON.stringify(catalog),snapshot);
+});
