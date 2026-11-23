@@ -5,7 +5,7 @@ export const demoReservations = Object.freeze([
 ]);
 
 // Forgiving local demo search only; never use for authorization or availability.
-const searchKey = value => String(value).normalize('NFD').replace(/\p{M}/gu, '').toLocaleLowerCase().replace(/\s+/gu, ' ').trim();
+const searchKey = value => String(value).normalize('NFD').replace(/\p{M}/gu, '').toLocaleLowerCase().replace(/[\p{P}\p{S}]+/gu, ' ').replace(/\s+/gu, ' ').trim();
 
 export function filterDemoReservations(reservations, query = '') {
   const terms = searchKey(query).split(' ').filter(Boolean);
