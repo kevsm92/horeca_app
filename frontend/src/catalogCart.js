@@ -45,3 +45,14 @@ export function changeCatalogQuantity(items, quantities, id, delta) {
   catalogCartLines(items, updated);
   return updated;
 }
+
+/** Remove one entire local draft line; no order mutation or server write. */
+export function removeCatalogLine(items, quantities, id) {
+  if (typeof id !== 'string' || !Object.hasOwn(quantities ?? {}, id))
+    throw new RangeError('Unknown cart line');
+  catalogCartLines(items, quantities);
+  const updated = {...quantities};
+  delete updated[id];
+  catalogCartLines(items, updated);
+  return updated;
+}
