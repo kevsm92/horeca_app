@@ -32,3 +32,14 @@ test('invalid aggregate adjustment preserves the original local draft', () => {
   assert.throws(() => changeCatalogQuantity(items, original, 'synthetic-extra', 1), /total limit/);
   assert.deepEqual(original, { 'synthetic-item': 99, 'synthetic-extra': 10 });
 });
+
+test('complimentary draft items retain quantity and can be adjusted without mutating the source', () => {
+  const free = Object.freeze({id:'synthetic-free', name:'Synthetic complimentary item', priceCents:0, available:true});
+  const original = Object.freeze({'synthetic-free':99});
+  const projection = catalogCartLines([free], original);
+  assert.equal(projection.totalCents, 0);
+  assert.equal(projection.lines[0].quantity, 99);
+  assert.equal(projection.lines[0].lineCents, 0);
+  assert.deepEqual(changeCatalogQuantity([free], original, 'synthetic-free', -1), {'synthetic-free':98});
+  assert.deepEqual(original, {'synthetic-free':99});
+});
