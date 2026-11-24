@@ -14,13 +14,11 @@ test('demo SPA exposes skip navigation, labeled landmarks and current page', () 
 });
 
 test('demo floor plan supports keyboard movement and announces changes', () => {
-  assert.match(source, /ArrowUp:\[0,-2\]/);
-  assert.match(source, /ArrowDown:\[0,2\]/);
-  assert.match(source, /ArrowLeft:\[-2,0\]/);
-  assert.match(source, /ArrowRight:\[2,0\]/);
+  assert.match(source, /import \{keyboardFloorMove\} from '\.\/floorKeyboardMove\.js';/);
+  assert.match(source, /keyboardFloorMove\(floorPositions,id,event\.key,event\.shiftKey,event\)/);
   assert.match(source, /onKeyDown=\{e=>onFloorKeyDown\(e,t\.id\)\}/);
   assert.match(source, /aria-keyshortcuts="ArrowUp ArrowDown ArrowLeft ArrowRight"/);
-  assert.match(source, /setFloorAnnouncement\(id\+' moved '/);
+  assert.match(source, /setFloorAnnouncement\(result\.announcement\)/);
   assert.match(source, /aria-live="polite">\{floorAnnouncement\}/);
 });
 
