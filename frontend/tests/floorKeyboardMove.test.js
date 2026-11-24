@@ -37,6 +37,6 @@ test('Shift+arrow uses larger steps and reports blocked movement without mutatio
   assert.deepEqual(moved.positions.T1, {x:20,y:30});
   assert.equal(moved.announcement, 'T1 moved down (large step).');
   assert.deepEqual(positions.T1, {x:20,y:20});
-  const blocked = keyboardFloorMove({T1:{x:85,y:20}}, 'T1', 'ArrowRight', true);
+  const blocked = keyboardFloorMove({T1:{x:90,y:20}}, 'T1', 'ArrowRight', true);
   assert.equal(blocked.announcement, 'T1 cannot move right: floor-plan boundary.');
 });
