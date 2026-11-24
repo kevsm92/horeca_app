@@ -7,6 +7,7 @@ export default function PythonMenuCatalog(){
  const [state,setState]=useState({status:'loading',items:[],error:''});
  const [query,setQuery]=useState('');
  const searchRef=useRef(null);
+ const resultsRef=useRef(null);
  const [kind,setKind]=useState('all');
  const [availableOnly,setAvailableOnly]=useState(false);
  const [sortOrder,setSortOrder]=useState('default');
@@ -38,8 +39,9 @@ export default function PythonMenuCatalog(){
     <select aria-label="Sort catalog" value={sortOrder} onChange={e=>setSortOrder(e.target.value)}><option value="default">API order</option><option value="name">Name A–Z</option><option value="price-low">Price: low to high</option><option value="price-high">Price: high to low</option></select>
    </div>
    {(query.trim()!==''||kind!=='all'||availableOnly||sortOrder!=='default')&&<button type="button" onClick={()=>{setQuery('');setKind('all');setAvailableOnly(false);setSortOrder('default');searchRef.current?.focus();}} aria-label="Reset catalog filters">Reset filters</button>}
+   <button type="button" onClick={()=>resultsRef.current?.focus()} aria-controls="python-menu-results">Jump to catalog results</button>
    <p id="python-menu-result-count" role="status" aria-live="polite" aria-atomic="true" className="muted">{shown.length} of {state.items.length} catalog items shown</p>
-   <div id="python-menu-results" className={shown.length===0?'':'dishes'} role="region" aria-label="Catalog results" aria-describedby="python-menu-result-count">
+   <div ref={resultsRef} tabIndex={-1} id="python-menu-results" className={shown.length===0?'':'dishes'} role="region" aria-label="Catalog results" aria-describedby="python-menu-result-count">
     {shown.length===0?<p>{state.items.length===0?'No menu items configured for this venue.':'No matching food or drinks.'}</p>:
      shown.map(item=><article className="dish" key={item.id}><div><small>{item.kind==='food'?'Food':'Drink'} · {item.available?'Available':'Unavailable'}</small><h3>{item.name}</h3>{item.description&&<p>{item.description}</p>}<b>{eur(item.priceCents)}</b></div></article>)}
    </div>
