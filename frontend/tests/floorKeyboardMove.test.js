@@ -23,3 +23,20 @@ test('ignores unrelated keys and unknown tables', () => {
   assert.equal(keyboardFloorMove(initialFloorPositions, 'T1', 'Enter'), null);
   assert.equal(keyboardFloorMove(initialFloorPositions, 'missing', 'ArrowRight'), null);
 });
+
+test('preserves browser modifier shortcuts without moving or announcing', () => {
+  for (const modifiers of [{altKey:true},{ctrlKey:true},{metaKey:true}]) {
+    assert.equal(keyboardFloorMove(initialFloorPositions, 'T1', 'ArrowRight', false, modifiers), null);
+  }
+  assert.equal(keyboardFloorMove(initialFloorPositions, 'T1', 'ArrowRight', false, {altKey:false,ctrlKey:false,metaKey:false}).announcement, 'T1 moved right.');
+});
+
+test('Shift+arrow uses larger steps and reports blocked movement without mutation', () => {
+  const positions = { T1: {x:20,y:20} };
+  const moved = keyboardFloorMove(positions, 'T1', 'ArrowDown', true);
+  assert.deepEqual(moved.positions.T1, {x:20,y:30});
+  assert.equal(moved.announcement, 'T1 moved down (large step).');
+  assert.deepEqual(positions.T1, {x:20,y:20});
+  const blocked = keyboardFloorMove({T1:{x:85,y:20}}, 'T1', 'ArrowRight', true);
+  assert.equal(blocked.announcement, 'T1 cannot move right: floor-plan boundary.');
+});
