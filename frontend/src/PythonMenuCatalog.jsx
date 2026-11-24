@@ -28,8 +28,9 @@ export default function PythonMenuCatalog(){
   {state.status==='loading'&&<p role="status">Loading food and drinks…</p>}
   {state.status==='error'&&<><p role="alert">{state.error}</p><button type="button" onClick={()=>setRetry(n=>n+1)}>Retry menu load</button></>}
   {state.status==='ready'&&<>
+   <p id="python-menu-search-help" className="muted">Search by name or description. Press Escape to clear the search.</p>
    <div className="filters">
-    <input ref={searchRef} type="search" aria-label="Search catalog" aria-controls="python-menu-results" aria-keyshortcuts="Escape" placeholder="Search food and drinks" value={query} onChange={e=>setQuery(e.target.value)} onKeyDown={e=>{if(e.key==='Escape'&&query){e.preventDefault();setQuery('');}}}/>
+    <input ref={searchRef} type="search" aria-label="Search catalog" aria-controls="python-menu-results" aria-describedby="python-menu-search-help python-menu-result-count" aria-keyshortcuts="Escape" placeholder="Search food and drinks" value={query} onChange={e=>setQuery(e.target.value)} onKeyDown={e=>{if(e.key==='Escape'&&query){e.preventDefault();setQuery('');}}}/>
     {query.length>0&&<button type="button" onClick={()=>{setQuery('');searchRef.current?.focus();}} aria-label="Clear catalog search">Clear search</button>}
     <select aria-label="Catalog type" value={kind} onChange={e=>setKind(e.target.value)}><option value="all">All</option><option value="food">Food</option><option value="drink">Drinks</option></select>
     <label><input type="checkbox" checked={availableOnly} onChange={e=>setAvailableOnly(e.target.checked)}/> Available only</label>
