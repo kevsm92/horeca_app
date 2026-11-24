@@ -1,4 +1,4 @@
-import React,{useEffect,useState} from 'react';
+import React,{useEffect,useRef,useState} from 'react';
 import {loadMenu} from './menuClient.js';
 import {filterMenu} from './menuViewModel.js';
 const eur=cents=>new Intl.NumberFormat('en-BE',{style:'currency',currency:'EUR'}).format(cents/100);
@@ -6,6 +6,7 @@ const eur=cents=>new Intl.NumberFormat('en-BE',{style:'currency',currency:'EUR'}
 export default function PythonMenuCatalog(){
  const [state,setState]=useState({status:'loading',items:[],error:''});
  const [query,setQuery]=useState('');
+ const searchRef=useRef(null);
  const [kind,setKind]=useState('all');
  const [retry,setRetry]=useState(0);
  useEffect(()=>{
@@ -26,12 +27,14 @@ export default function PythonMenuCatalog(){
   {state.status==='error'&&<><p role="alert">{state.error}</p><button type="button" onClick={()=>setRetry(n=>n+1)}>Retry menu load</button></>}
   {state.status==='ready'&&<>
    <div className="filters">
-    <input aria-label="Search catalog" placeholder="Search food and drinks" value={query} onChange={e=>setQuery(e.target.value)}/>
+    <input ref={searchRef} type="search" aria-label="Search catalog" aria-controls="python-menu-results" aria-keyshortcuts="Escape" placeholder="Search food and drinks" value={query} onChange={e=>setQuery(e.target.value)} onKeyDown={e=>{if(e.key==='Escape'&&query){e.preventDefault();setQuery('');}}}/>
+    {query.length>0&&<button type="button" onClick={()=>{setQuery('');searchRef.current?.focus();}} aria-label="Clear catalog search">Clear search</button>}
     <select aria-label="Catalog type" value={kind} onChange={e=>setKind(e.target.value)}><option value="all">All</option><option value="food">Food</option><option value="drink">Drinks</option></select>
    </div>
-   <p role="status" className="muted">{shown.length} of {state.items.length} catalog items shown</p>
+   {(query.trim()!==''||kind!=='all')&&<button type="button" onClick={()=>{setQuery('');setKind('all');searchRef.current?.focus();}} aria-label="Reset catalog filters">Reset filters</button>}
+   <p role="status" aria-live="polite" aria-atomic="true" className="muted">{shown.length} of {state.items.length} catalog items shown</p>
    {shown.length===0?<p>{state.items.length===0?'No menu items configured for this venue.':'No matching food or drinks.'}</p>:
-    <div className="dishes">{shown.map(item=><article className="dish" key={item.id}><div><small>{item.kind==='food'?'Food':'Drink'} · {item.available?'Available':'Unavailable'}</small><h3>{item.name}</h3>{item.description&&<p>{item.description}</p>}<b>{eur(item.priceCents)}</b></div></article>)}</div>}
+    <div id="python-menu-results" className="dishes">{shown.map(item=><article className="dish" key={item.id}><div><small>{item.kind==='food'?'Food':'Drink'} · {item.available?'Available':'Unavailable'}</small><h3>{item.name}</h3>{item.description&&<p>{item.description}</p>}<b>{eur(item.priceCents)}</b></div></article>)}</div>}
   </>}
  </section>;
 }
