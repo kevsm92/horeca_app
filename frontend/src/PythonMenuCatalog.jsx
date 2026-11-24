@@ -8,6 +8,7 @@ export default function PythonMenuCatalog(){
  const [query,setQuery]=useState('');
  const searchRef=useRef(null);
  const [kind,setKind]=useState('all');
+ const [availableOnly,setAvailableOnly]=useState(false);
  const [retry,setRetry]=useState(0);
  useEffect(()=>{
    const controller=new AbortController();
@@ -19,7 +20,7 @@ export default function PythonMenuCatalog(){
    });
    return ()=>controller.abort();
  },[retry]);
- const shown=state.status==='ready'?filterMenu(state.items,query,kind):[];
+ const shown=state.status==='ready'?filterMenu(state.items,query,kind,availableOnly):[];
  return <section className="panel" aria-label="Python food and drink catalog">
   <h2>Food &amp; Drink · Python catalog</h2>
   <p className="muted">Authenticated read-only catalog. Any entries shown are from the Python API; the separate demo POS is not connected to this catalog.</p>
@@ -30,8 +31,9 @@ export default function PythonMenuCatalog(){
     <input ref={searchRef} type="search" aria-label="Search catalog" aria-controls="python-menu-results" aria-keyshortcuts="Escape" placeholder="Search food and drinks" value={query} onChange={e=>setQuery(e.target.value)} onKeyDown={e=>{if(e.key==='Escape'&&query){e.preventDefault();setQuery('');}}}/>
     {query.length>0&&<button type="button" onClick={()=>{setQuery('');searchRef.current?.focus();}} aria-label="Clear catalog search">Clear search</button>}
     <select aria-label="Catalog type" value={kind} onChange={e=>setKind(e.target.value)}><option value="all">All</option><option value="food">Food</option><option value="drink">Drinks</option></select>
+    <label><input type="checkbox" checked={availableOnly} onChange={e=>setAvailableOnly(e.target.checked)}/> Available only</label>
    </div>
-   {(query.trim()!==''||kind!=='all')&&<button type="button" onClick={()=>{setQuery('');setKind('all');searchRef.current?.focus();}} aria-label="Reset catalog filters">Reset filters</button>}
+   {(query.trim()!==''||kind!=='all'||availableOnly)&&<button type="button" onClick={()=>{setQuery('');setKind('all');setAvailableOnly(false);searchRef.current?.focus();}} aria-label="Reset catalog filters">Reset filters</button>}
    <p role="status" aria-live="polite" aria-atomic="true" className="muted">{shown.length} of {state.items.length} catalog items shown</p>
    {shown.length===0?<p>{state.items.length===0?'No menu items configured for this venue.':'No matching food or drinks.'}</p>:
     <div id="python-menu-results" className="dishes">{shown.map(item=><article className="dish" key={item.id}><div><small>{item.kind==='food'?'Food':'Drink'} · {item.available?'Available':'Unavailable'}</small><h3>{item.name}</h3>{item.description&&<p>{item.description}</p>}<b>{eur(item.priceCents)}</b></div></article>)}</div>}
