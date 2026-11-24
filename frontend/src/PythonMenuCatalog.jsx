@@ -34,8 +34,8 @@ export default function PythonMenuCatalog(){
     <label><input type="checkbox" checked={availableOnly} onChange={e=>setAvailableOnly(e.target.checked)}/> Available only</label>
    </div>
    {(query.trim()!==''||kind!=='all'||availableOnly)&&<button type="button" onClick={()=>{setQuery('');setKind('all');setAvailableOnly(false);searchRef.current?.focus();}} aria-label="Reset catalog filters">Reset filters</button>}
-   <p role="status" aria-live="polite" aria-atomic="true" className="muted">{shown.length} of {state.items.length} catalog items shown</p>
-   <div id="python-menu-results" className={shown.length===0?'':'dishes'} aria-label="Catalog results">
+   <p id="python-menu-result-count" role="status" aria-live="polite" aria-atomic="true" className="muted">{shown.length} of {state.items.length} catalog items shown</p>
+   <div id="python-menu-results" className={shown.length===0?'':'dishes'} role="region" aria-label="Catalog results" aria-describedby="python-menu-result-count">
     {shown.length===0?<p>{state.items.length===0?'No menu items configured for this venue.':'No matching food or drinks.'}</p>:
      shown.map(item=><article className="dish" key={item.id}><div><small>{item.kind==='food'?'Food':'Drink'} · {item.available?'Available':'Unavailable'}</small><h3>{item.name}</h3>{item.description&&<p>{item.description}</p>}<b>{eur(item.priceCents)}</b></div></article>)}
    </div>
