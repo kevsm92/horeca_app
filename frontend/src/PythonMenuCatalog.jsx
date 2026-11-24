@@ -25,6 +25,7 @@ export default function PythonMenuCatalog(){
  return <section className="panel" aria-label="Python food and drink catalog">
   <h2>Food &amp; Drink · Python catalog</h2>
   <p className="muted">Authenticated read-only catalog. Any entries shown are from the Python API; the separate demo POS is not connected to this catalog.</p>
+  {state.status==='ready'&&<button type="button" onClick={()=>setRetry(n=>n+1)} aria-label="Refresh Python menu catalog">Refresh catalog</button>}
   {state.status==='loading'&&<p role="status">Loading food and drinks…</p>}
   {state.status==='error'&&<><p role="alert">{state.error}</p><button type="button" onClick={()=>setRetry(n=>n+1)}>Retry menu load</button></>}
   {state.status==='ready'&&<>
