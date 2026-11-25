@@ -8,7 +8,7 @@ const source = readFileSync(new URL('../src/main.jsx', import.meta.url), 'utf8')
 
 test('demo SPA exposes skip navigation, labeled landmarks and current page', () => {
   assert.match(source, /className="skip-link" href="#main-content"/);
-  assert.match(source, /<main id="main-content" tabIndex=\{-1\}/);
+  assert.match(source, /<main id="main-content" ref=\{mainRef\} tabIndex=\{-1\}/);
   assert.match(source, /<nav aria-label="Main navigation"/);
   assert.match(source, /aria-current=\{page===s\?'page':undefined\}/);
 });
