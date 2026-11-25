@@ -30,3 +30,11 @@ test('synthetic POS and reservations communicate filtered results to assistive t
   assert.match(source, /aria-label="Clear dish search"/);
   assert.match(source, /aria-label="Clear reservation search"/);
 });
+
+test('SPA page transitions focus main without stealing initial focus', () => {
+  assert.match(source, /const mainRef=useRef\(null\)/);
+  assert.match(source, /const initialPageRef=useRef\(true\)/);
+  assert.match(source, /if\(initialPageRef\.current\)\{initialPageRef\.current=false;return;\}/);
+  assert.match(source, /mainRef\.current\?\.focus\(\)/);
+  assert.match(source, /\},\[page\]\)/);
+});
