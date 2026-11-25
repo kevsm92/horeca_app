@@ -35,3 +35,14 @@ test('Node tooling is not configured as a production application server', () => 
     assert.equal(packageJson.devDependencies?.[dependency], undefined);
   }
 });
+
+test('operational demo remains clearly synthetic and Python table adapter stays dormant', () => {
+  const app = readFileSync(new URL('../src/main.jsx', import.meta.url), 'utf8');
+  const adapter = readFileSync(new URL('../src/pythonApi.js', import.meta.url), 'utf8');
+  assert.match(app, /Synthetic data only/);
+  assert.match(app, /Fictional ticket sent\./);
+  assert.match(app, /No payments or external API calls\./);
+  assert.doesNotMatch(app, /createPythonTablesApi|\/api\/v1\/tables/);
+  assert.match(adapter, /fetchImpl\('\/api\/v1\/tables'/);
+  assert.match(adapter, /credentials: 'same-origin'/);
+});
