@@ -12,12 +12,21 @@ class OutboxTests(unittest.TestCase):
 
     def test_dedupe_and_venue_isolation(self):
         self.assertTrue(enqueue(self.db,'a','k','task.created',{'task':'synthetic'},NOW))
-        self.assertFalse(enqueue(self.db,'a','k','task.created',{},NOW))
+        self.assertFalse(enqueue(self.db,'a','k','task.created',{'task':'synthetic'},NOW))
         self.assertTrue(enqueue(self.db,'b','k','task.created',{},NOW))
         seen=[]
         self.assertEqual(dispatch_mock(self.db,'a',NOW,lambda typ,p: seen.append(typ)),1)
         self.assertEqual(seen,['task.created'])
         self.assertEqual(self.db.execute("SELECT status FROM workflow_outbox WHERE venue_id='b'").fetchone()[0],'pending')
+
+    def test_conflicting_idempotency_key_rejected(self):
+        enqueue(self.db,'a','k','task.created',{'task':'first'},NOW)
+        with self.assertRaises(ValueError):
+            enqueue(self.db,'a','k','task.created',{'task':'changed'},NOW)
+        with self.assertRaises(ValueError):
+            enqueue(self.db,'a','k','task.updated',{'task':'first'},NOW)
+        self.assertEqual(self.db.execute(
+            "SELECT count(*) FROM workflow_outbox WHERE venue_id='a'").fetchone()[0],1)
 
     def test_retry_dead_letter_and_no_premature_retry(self):
         enqueue(self.db,'a','k','task.created',{},NOW)
