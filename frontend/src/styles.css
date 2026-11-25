@@ -222,3 +222,9 @@ button:disabled:hover { background:#17384d; }
 @media (forced-colors:active) {
   #catalog-pos-results:focus { outline-color:Highlight; }
 }
+
+/* Reservation filter keyboard destination, including zero matches. */
+#reservation-results:focus { outline:3px solid #69e3e0; outline-offset:4px; border-radius:8px; }
+@media (forced-colors:active) {
+  #reservation-results:focus { outline-color:Highlight; }
+}
