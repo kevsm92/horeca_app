@@ -14,6 +14,6 @@ test('fictional kitchen tickets are explicitly labelled and do not submit to Pyt
 test('kitchen demo has accessible empty-state and progression actions',()=>{
   for(const state of ['New','Preparing','Ready'])assert.ok(source.includes("'"+state+"'"));
   assert.match(source,/aria-label=\{status\+' kitchen tickets'\}/);
-  assert.match(source,/aria-label=\{\(status==='New'\?'Start preparing':'Mark ready'\)/);
+  assert.match(source,/aria-label=\{\(status==='New'\?'Start preparing':status==='Preparing'\?'Mark ready':'Reopen'\)/);
   assert.match(source,/No ready tickets yet/);
 });
