@@ -60,3 +60,15 @@ test('late abort discards parsed data rather than exposing a stale venue snapsho
   }));
   await assert.rejects(api.listTables({ signal: controller.signal }), { name: 'AbortError' });
 });
+
+test('pre-aborted view does not issue a Python HTTP request', async () => {
+  const controller = new AbortController();
+  controller.abort();
+  let calls = 0;
+  const api = createPythonTablesApi(async () => {
+    calls += 1;
+    throw new Error('fetch must not be called');
+  });
+  await assert.rejects(api.listTables({ signal: controller.signal }), { name: 'AbortError' });
+  assert.equal(calls, 0);
+});
