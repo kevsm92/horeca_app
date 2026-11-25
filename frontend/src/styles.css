@@ -215,3 +215,10 @@ button:disabled:hover { background:#17384d; }
 @media (forced-colors:active) {
   #python-menu-results:focus { outline-color:Highlight; }
 }
+
+/* Match menu catalog keyboard jump affordance in the authenticated POS draft.
+   Programmatic focus is visible, without adding a normal Tab stop. */
+#catalog-pos-results:focus { outline:3px solid #69e3e0; outline-offset:4px; border-radius:8px; }
+@media (forced-colors:active) {
+  #catalog-pos-results:focus { outline-color:Highlight; }
+}
