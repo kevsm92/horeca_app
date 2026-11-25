@@ -23,7 +23,7 @@ export default function PythonMenuCatalog(){
    return ()=>controller.abort();
  },[retry]);
  const shown=state.status==='ready'?sortMenu(filterMenu(state.items,query,kind,availableOnly),sortOrder):[];
- return <section className="panel" aria-label="Python food and drink catalog">
+ return <section className="panel" aria-label="Python food and drink catalog" aria-busy={state.status==='loading'}>
   <h2>Food &amp; Drink · Python catalog</h2>
   <p className="muted">Authenticated read-only catalog. Any entries shown are from the Python API; the separate demo POS is not connected to this catalog.</p>
   {state.status==='ready'&&<button type="button" onClick={()=>setRetry(n=>n+1)} aria-label="Refresh Python menu catalog">Refresh catalog</button>}
