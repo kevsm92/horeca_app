@@ -38,3 +38,9 @@ test('SPA page transitions focus main without stealing initial focus', () => {
   assert.match(source, /mainRef\.current\?\.focus\(\)/);
   assert.match(source, /\},\[page\]\)/);
 });
+
+test('fictional POS provides a focusable, labeled result region after filters', () => {
+  assert.match(source, /const demoDishResultsRef=useRef\(null\)/);
+  assert.match(source, /onClick=\{\(\)=>demoDishResultsRef\.current\?\.focus\(\)\}>Jump to fictional dish results/);
+  assert.match(source, /id="pos-dish-results" ref=\{demoDishResultsRef\} tabIndex=\{-1\} role="region" aria-label="Filtered fictional dish results"/);
+});
