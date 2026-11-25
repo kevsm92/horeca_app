@@ -228,3 +228,9 @@ button:disabled:hover { background:#17384d; }
 @media (forced-colors:active) {
   #reservation-results:focus { outline-color:Highlight; }
 }
+
+/* Visible focus destination for synthetic POS filter results, even with no matches. */
+#pos-dish-results:focus { outline:3px solid #69e3e0; outline-offset:4px; border-radius:8px; }
+@media (forced-colors:active) {
+  #pos-dish-results:focus { outline-color:Highlight; }
+}
