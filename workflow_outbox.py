@@ -23,7 +23,7 @@ def initialize(db: sqlite3.Connection) -> None:
 
 def enqueue(db: sqlite3.Connection, venue_id: str, event_key: str,
             event_type: str, payload: dict, now: datetime) -> bool:
-    """Insert inside caller-owned transaction; duplicate keys are no-ops."""
+    """Insert inside caller-owned transaction; identical duplicate keys are no-ops."""
     if not all(isinstance(v, str) and v.strip() for v in (venue_id, event_key, event_type)):
         raise ValueError('venue, key and type required')
     if now.tzinfo is None or now.utcoffset() is None:
@@ -32,6 +32,11 @@ def enqueue(db: sqlite3.Connection, venue_id: str, event_key: str,
     cursor = db.execute("""INSERT OR IGNORE INTO workflow_outbox
         (venue_id,event_key,event_type,payload,next_attempt_at) VALUES (?,?,?,?,?)""",
         (venue_id,event_key,event_type,encoded,now.astimezone(timezone.utc).isoformat()))
+    if cursor.rowcount == 0:
+        previous = db.execute("""SELECT event_type,payload FROM workflow_outbox
+            WHERE venue_id=? AND event_key=?""", (venue_id,event_key)).fetchone()
+        if previous != (event_type,encoded):
+            raise ValueError('event key reused with different event type or payload')
     return cursor.rowcount == 1
 
 
