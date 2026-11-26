@@ -1,6 +1,7 @@
 import React,{useState} from 'react';
 import {DEMO_WEEK,shiftWeek,weekDays,demoRoster,weekForDate} from './demoRoster.js';
 import './weeklySchedule.css';
+import {rosterShiftKey,rosterShiftDescription} from './rosterShiftDetails.js';
 
 export default function WeeklySchedule(){
   const [week,setWeek] = useState(DEMO_WEEK);
@@ -26,16 +27,17 @@ export default function WeeklySchedule(){
       <button type="button" onClick={()=>chooseDate(DEMO_WEEK)}>Demo week</button>
     </div>
     <div className="roster-view-switch" role="group" aria-label="Schedule display"><button type="button" aria-pressed={view==='grid'} onClick={()=>{setView('grid');setExpandedShift(null);}}>Weekly grid</button><button type="button" aria-pressed={view==='agenda'} onClick={()=>{setView('agenda');setExpandedShift(null);}}>Daily agenda</button></div>
-    {roster && view==='agenda' && <div className="roster-agenda" aria-label="Daily shift agenda">{days.map((day,i)=><section className="roster-agenda-day" key={day.key} aria-labelledby={'agenda-'+day.key}><h3 id={'agenda-'+day.key}>{day.day} {day.date}{day.key===today?' · Today':''}</h3><ul>{roster.filter(person=>person.shifts[i]).map(person=>{const shift=person.shifts[i];const key=person.id+'-'+day.key;return <li key={key}><button type="button" className={'roster-agenda-shift '+person.tone} aria-expanded={expandedShift===key} onClick={()=>setExpandedShift(old=>old===key?null:key)}><strong>{person.name}</strong><span>{shift.time}</span><small>{person.role} · Scheduled</small></button>{expandedShift===key&&<p className="roster-shift-detail">Fictional planned shift for {person.name} ({person.role}) on {day.date}. Hours: {shift.time}. Actual attendance is unknown. No changes are saved.</p>}</li>})}{!roster.some(person=>person.shifts[i])&&<li className="roster-off">No fictional shifts scheduled</li>}</ul></section>)}</div>}
+    {roster && view==='agenda' && <div className="roster-agenda" aria-label="Daily shift agenda">{days.map((day,i)=><section className="roster-agenda-day" key={day.key} aria-labelledby={'agenda-'+day.key}><h3 id={'agenda-'+day.key}>{day.day} {day.date}{day.key===today?' · Today':''}</h3><ul>{roster.filter(person=>person.shifts[i]).map(person=>{const shift=person.shifts[i];const key=rosterShiftKey(person.id,day.key);return <li key={key}><button type="button" className={'roster-agenda-shift '+person.tone} aria-expanded={expandedShift===key} onClick={()=>setExpandedShift(old=>old===key?null:key)}><strong>{person.name}</strong><span>{shift.time}</span><small>{person.role} · Scheduled</small></button>{expandedShift===key&&<p className="roster-shift-detail">{rosterShiftDescription(person,day,shift)}</p>}</li>})}{!roster.some(person=>person.shifts[i])&&<li className="roster-off">No fictional shifts scheduled</li>}</ul></section>)}</div>}
     {roster && view==='grid' ? <div className="roster-scroll" role="region" aria-label="Weekly shift grid, scroll horizontally if needed" tabIndex={0}>
       <table className="roster-grid">
         <caption className="sr-only">Fictional weekly roster. Shifts show scheduled hours, not actual presence.</caption>
         <thead><tr><th scope="col">Staff</th>{days.map(d=><th scope="col" key={d.key} className={d.key===today?'roster-today':undefined} aria-current={d.key===today?'date':undefined}>{d.day}<small>{d.date}</small></th>)}</tr></thead>
         <tbody>{roster.map(person=><tr key={person.id}>
           <th scope="row">{person.name}<small>{person.role}</small></th>
-          {person.shifts.map((shift,i)=><td key={days[i].key} className={days[i].key===today?'roster-today':undefined}>{shift ? <div className={'roster-shift '+person.tone}><strong>{shift.time}</strong><small>Scheduled</small></div> : <span className="roster-off">Off</span>}</td>)}
+          {person.shifts.map((shift,i)=><td key={days[i].key} className={days[i].key===today?'roster-today':undefined}>{shift ? <button type="button" className={'roster-shift roster-grid-shift '+person.tone} aria-expanded={expandedShift===rosterShiftKey(person.id,days[i].key)} aria-controls="roster-grid-detail" onClick={()=>setExpandedShift(old=>old===rosterShiftKey(person.id,days[i].key)?null:rosterShiftKey(person.id,days[i].key))}><strong>{shift.time}</strong><small>Scheduled · Details</small></button> : <span className="roster-off">Off</span>}</td>)}
         </tr>)}</tbody>
       </table>
+      <div id="roster-grid-detail" className="roster-grid-detail" role="status" aria-live="polite">{(()=>{if(!expandedShift)return 'Select a scheduled shift to see its details.';for(const person of roster){for(let i=0;i<days.length;i++){if(person.shifts[i]&&rosterShiftKey(person.id,days[i].key)===expandedShift)return rosterShiftDescription(person,days[i],person.shifts[i]);}}return 'Select a scheduled shift to see its details.';})()}</div>
     </div> : !roster ? <p className="roster-empty" role="status">No fictional roster is available for this week. Actual staffing is unknown.</p> : null}
     <div className="roster-footer"><p>Demo only. Creating and publishing shifts requires the authorized Python roster API.</p><button type="button" className="roster-action" disabled>➤ Publish Schedule</button></div>
   </section>;

@@ -61,3 +61,11 @@
 .roster-agenda-shift.cyan{background:#14454c;color:#a4f2f6;}
 .roster-shift-detail{padding:10px 12px;border-left:3px solid #69e3e0;color:#edf5f8;font-size:.86rem;line-height:1.5;margin:4px 0 0;}
 @media(forced-colors:active){.roster-agenda-shift,.roster-view-switch button[aria-pressed=true]{border:2px solid Highlight;}}
+
+/* Keyboard-accessible shift detail buttons in the original weekly grid. */
+.roster-grid-shift{display:block;width:100%;border:1px solid transparent;text-align:center;cursor:pointer;font:inherit;}
+.roster-grid-shift:hover{filter:brightness(1.15);}
+.roster-grid-shift:focus-visible{outline:3px solid #69e3e0;outline-offset:2px;}
+.roster-grid-shift[aria-expanded=true]{border-color:#69e3e0;}
+.roster-grid-detail{padding:14px 16px;background:var(--horeca-panel-end,#0d293d);color:var(--horeca-text,#edf5f8);line-height:1.5;}
+@media(forced-colors:active){.roster-grid-shift{border:1px solid ButtonText;}.roster-grid-shift:focus-visible{outline-color:Highlight;}}
