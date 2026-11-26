@@ -1,0 +1,34 @@
+/* Screenshot-inspired dark emerald roster; all styles scoped to the component. */
+.roster-panel{min-width:0;background:#0b2022;color:#f0f7f6;border:1px solid #29504d;border-radius:14px;padding:20px;}
+.roster-heading,.roster-controls,.roster-footer{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+.roster-heading,.roster-footer{justify-content:space-between;}
+.roster-heading h2{margin:0;font-size:1.35rem;}
+.roster-heading p,.roster-footer p{margin:6px 0;color:#b7cfce;font-size:.85rem;}
+.roster-controls{margin:18px 0;}
+.roster-controls button{background:#163435;border-color:#416361;min-height:44px;min-width:44px;}
+.roster-controls button:hover{background:#24514b;}
+.roster-action{background:#007e5e;border-color:#169e7b;color:#fff;font-weight:600;min-height:44px;}
+.roster-action:disabled{background:#16594a;border-color:#38665c;color:#b8d2cb;cursor:not-allowed;}
+.roster-scroll{overflow-x:auto;max-width:100%;border:1px solid #395553;border-radius:9px;}
+.roster-scroll:focus-visible{outline:3px solid #74e8c3;outline-offset:3px;}
+.roster-grid{width:100%;min-width:820px;border-collapse:separate;border-spacing:0;table-layout:fixed;}
+.roster-grid th,.roster-grid td{padding:10px;border-right:1px solid #34504e;border-bottom:1px solid #34504e;text-align:center;vertical-align:middle;}
+.roster-grid tr:last-child td,.roster-grid tbody tr:last-child th{border-bottom:0;}
+.roster-grid tr>*:last-child{border-right:0;}
+.roster-grid th{background:#132b2c;font-size:.9rem;}
+.roster-grid th:first-child{position:sticky;left:0;z-index:1;width:120px;text-align:left;}
+.roster-grid th small,.roster-shift small{display:block;margin-top:4px;font-size:.75rem;font-weight:500;}
+.roster-grid tbody th small{color:#62d8af;}
+.roster-grid thead small{color:#b7cfce;}
+.roster-shift{border-radius:6px;padding:10px 4px;min-height:54px;overflow-wrap:anywhere;}
+.roster-shift strong{font-size:.82rem;}
+.roster-shift.green{background:#174831;color:#a4f2be;}
+.roster-shift.blue{background:#173a54;color:#b9e2ff;}
+.roster-shift.gold{background:#443b21;color:#ffe2a0;}
+.roster-shift.cyan{background:#14454c;color:#a4f2f6;}
+.roster-off{font-size:.8rem;color:#a4bfbd;}
+.roster-footer{margin-top:18px;}
+.roster-footer p{max-width:62ch;}
+.roster-empty{padding:20px;background:#132b2c;border-radius:8px;}
+@media(max-width:700px){.roster-panel{padding:14px;}.roster-heading,.roster-footer{align-items:flex-start;}.roster-grid th:first-child{width:110px;}}
+@media(forced-colors:active){.roster-shift{border:1px solid CanvasText;}.roster-scroll:focus-visible{outline-color:Highlight;}}
