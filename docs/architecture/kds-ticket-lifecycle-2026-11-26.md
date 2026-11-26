@@ -1,6 +1,6 @@
 # KDS ticket lifecycle contract v0.1 — 2026-11-26
 
-Status: **standalone architecture contract**, not integrated or deployed. The reachable `develop` README explicitly says historical source archives are not incorporated. This increment defines one bounded feature: a venue-scoped, monotonic kitchen/bar ticket lifecycle. No real orders, guests, workers, or integrations.
+Status: **standalone architecture contract**, not integrated or deployed. The initial README is stale: inspection after this commit confirmed existing offline modules `backend/kitchen_ticket.py`, `backend/kitchen_ticket_intake.py` and `backend/kitchen_reconciliation.py` on `develop`. This contract is a gap/target design, not a description of implemented behavior. This increment defines one bounded feature: a venue-scoped, monotonic kitchen/bar ticket lifecycle. No real orders, guests, workers, or integrations.
 
 ## Domain and ownership
 
@@ -45,4 +45,4 @@ Before implementing HTTP routes: recover/verify actual Python persistence and or
 
 ## Run ledger
 
-2026-11-26: this ticket lifecycle contract is the scoped deliverable; implementation and automated execution remain **pending** until actual application source is verified. Next distinct KDS increment: station-routing rules from verified menu item types, with synthetic contract tests; avoid re-authoring this lifecycle contract.
+2026-11-26: this ticket lifecycle contract is the scoped deliverable; existing pure offline ticket transition/intake/reconciliation modules were verified by reading their source; this specification's persistent CAS, event/outbox transaction and manager-only ready cancellation are **not implemented or tested here**. Existing `ready -> cancelled` is forbidden in `backend/kitchen_ticket.py`, so any proposed change needs a separate reviewed milestone. No tests were executed in this run. Next distinct KDS increment: persistent CAS plus append-only event transaction against the verified offline modules, with synthetic tests; avoid re-authoring this lifecycle contract.
