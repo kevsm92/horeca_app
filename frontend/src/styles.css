@@ -234,3 +234,10 @@ button:disabled:hover { background:#17384d; }
 @media (forced-colors:active) {
   #pos-dish-results:focus { outline-color:Highlight; }
 }
+
+/* The SPA moves keyboard focus to <main> after navigation and via the skip link.
+   Mark that destination visibly without adding a permanent tab stop or layout shift. */
+main:focus { outline:3px solid #69e3e0; outline-offset:-3px; }
+@media (forced-colors:active) {
+  main:focus { outline-color:Highlight; }
+}
