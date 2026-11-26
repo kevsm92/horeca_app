@@ -4,8 +4,8 @@ export const demoReservations = Object.freeze([
   Object.freeze({ id: 'demo-r2', time: '20:00', name: 'Jamie Lee', guests: 4, table: 'T3' })
 ]);
 
-// Forgiving local demo search only; never use for authorization or availability.
-const searchKey = value => String(value).normalize('NFD').replace(/\p{M}/gu, '').replace(/['’]/gu, '').toLocaleLowerCase().replace(/[\p{P}\p{S}]+/gu, ' ').replace(/\s+/gu, ' ').trim();
+// Forgiving local demo search only; compatibility normalization also matches full-width Latin text. Never use for authorization or availability.
+const searchKey = value => String(value).normalize('NFKD').replace(/\p{M}/gu, '').replace(/['’]/gu, '').toLocaleLowerCase().replace(/[\p{P}\p{S}]+/gu, ' ').replace(/\s+/gu, ' ').trim();
 
 export function filterDemoReservations(reservations, query = '') {
   const terms = searchKey(query).split(' ').filter(Boolean);
