@@ -2,12 +2,16 @@ import React,{useState} from 'react';
 import {DEMO_WEEK,shiftWeek,weekDays,demoRoster,weekForDate} from './demoRoster.js';
 import './weeklySchedule.css';
 import {rosterShiftKey,rosterShiftDescription} from './rosterShiftDetails.js';
+import {createDemoShiftDraft} from './rosterDraft.js';
 
 export default function WeeklySchedule(){
   const [week,setWeek] = useState(DEMO_WEEK);
   const [selectedDate,setSelectedDate] = useState(DEMO_WEEK);
   const [view,setView] = useState('grid');
   const [expandedShift,setExpandedShift] = useState(null);
+  const [drafts,setDrafts] = useState([]);
+  const [draftOpen,setDraftOpen] = useState(false);
+  const [draftError,setDraftError] = useState('');
   const todayParts = Object.fromEntries(new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/Brussels',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date()).filter(p=>p.type!=='literal').map(p=>[p.type,p.value]));
   const today = `${todayParts.year}-${todayParts.month}-${todayParts.day}`;
   function chooseDate(value){if(!/^\d{4}-\d{2}-\d{2}$/.test(value))return;setSelectedDate(value);setWeek(weekForDate(value));}
@@ -16,8 +20,18 @@ export default function WeeklySchedule(){
   return <section className="roster-panel" aria-labelledby="roster-title">
     <div className="roster-heading">
       <div><h2 id="roster-title">Weekly Schedule</h2><p>Fictional roster · Europe/Brussels · planned shifts only</p></div>
-      <button type="button" className="roster-action" disabled>+ Create Shift</button>
+      <button type="button" className="roster-action" aria-expanded={draftOpen} aria-controls="roster-draft-form" onClick={()=>{setDraftOpen(open=>!open);setDraftError("");}}>+ Create Demo Draft</button>
     </div>
+    {draftOpen&&<form id="roster-draft-form" className="roster-draft-form" onSubmit={event=>{event.preventDefault();const fields=new FormData(event.currentTarget);try{const draft=createDemoShiftDraft(Object.fromEntries(fields),demoRoster(week),drafts);setDrafts(old=>[...old,draft]);setDraftError('');event.currentTarget.reset();}catch(error){setDraftError(error.message);}}}>
+      <h3>New fictional shift draft</h3><p>Local preview only — not published or saved to a server.</p>
+      <label>Employee<select name="personId" required defaultValue=""><option value="" disabled>Select fictional employee</option>{(demoRoster(DEMO_WEEK)||[]).map(person=><option value={person.id} key={person.id}>{person.name} · {person.role}</option>)}</select></label>
+      <label>Date<input name="date" type="date" required defaultValue={selectedDate}/></label>
+      <label>Start<input name="start" type="time" required defaultValue="09:00"/></label>
+      <label>End<input name="end" type="time" required defaultValue="17:00"/></label>
+      <button type="submit">Add demo draft</button>
+      {draftError&&<p role="alert">{draftError}</p>}
+    </form>}
+    {drafts.length>0&&<section className="roster-drafts" aria-label="Unsaved fictional shift drafts"><h3>Unsaved demo drafts ({drafts.length})</h3><ul>{drafts.map(draft=><li key={draft.id}>{draft.personName} · {draft.date} · {draft.start}–{draft.end}{draft.overnight?' (+1 day)':''} <button type="button" aria-label={'Remove draft for '+draft.personName+' on '+draft.date} onClick={()=>setDrafts(old=>old.filter(d=>d.id!==draft.id))}>Remove</button></li>)}</ul><button type="button" onClick={()=>setDrafts([])}>Clear demo drafts</button></section>}
     <div className="roster-controls">
       <button type="button" aria-label="Previous week" onClick={()=>{const next=shiftWeek(week,-1);setWeek(next);setSelectedDate(next);}}>‹</button>
       <strong role="status" aria-live="polite">{days[0].date} – {days[6].date}, {days[6].key.slice(0,4)}</strong>

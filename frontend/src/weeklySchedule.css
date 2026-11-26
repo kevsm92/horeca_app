@@ -69,3 +69,15 @@
 .roster-grid-shift[aria-expanded=true]{border-color:#69e3e0;}
 .roster-grid-detail{padding:14px 16px;background:var(--horeca-panel-end,#0d293d);color:var(--horeca-text,#edf5f8);line-height:1.5;}
 @media(forced-colors:active){.roster-grid-shift{border:1px solid ButtonText;}.roster-grid-shift:focus-visible{outline-color:Highlight;}}
+
+/* Explicitly unsaved browser-only roster drafts; not the published schedule. */
+.roster-draft-form,.roster-drafts{margin:16px 0;padding:16px;border:1px solid var(--horeca-panel-border,#2d5269);border-radius:10px;background:var(--horeca-panel-end,#0d293d);}
+.roster-draft-form h3,.roster-drafts h3{margin:0 0 8px;}
+.roster-draft-form p{color:#b7cfdb;}
+.roster-draft-form{display:flex;flex-wrap:wrap;gap:12px;align-items:end;}
+.roster-draft-form h3,.roster-draft-form p{flex-basis:100%;}
+.roster-draft-form label{display:grid;gap:5px;flex:1 1 155px;}
+.roster-draft-form input,.roster-draft-form select{min-height:44px;min-width:0;padding:8px;background:#0c273a;color:#fff;border:1px solid #385c72;border-radius:8px;color-scheme:dark;}
+.roster-draft-form [role=alert]{color:#ffcf99;}
+.roster-drafts li{margin:8px 0;line-height:1.7;}
+.roster-drafts li button{margin-left:12px;}
