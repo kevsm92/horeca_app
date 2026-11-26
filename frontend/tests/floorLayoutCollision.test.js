@@ -25,6 +25,7 @@ test('invalid floor coordinates and malformed points do not corrupt visual state
   for(const [x,y] of [[undefined,20],[20,null],[Infinity,20],[20,NaN]]) {
     assert.strictEqual(moveTable(positions,'T1',x,y),positions);
   }
-  assert.strictEqual(moveTable({T1:{x:NaN,y:20}},'T1',30,30).T1.x!==undefined,true);
+  const malformed={T1:{x:NaN,y:20}};
+  assert.strictEqual(moveTable(malformed,'T1',30,30),malformed);
   assert.strictEqual(moveTable(null,'T1',30,30),null);
 });
