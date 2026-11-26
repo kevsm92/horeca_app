@@ -14,3 +14,12 @@ export function createDemoShiftDraft(input,people,existing=[]){
   const id=[personId,date,start,end].join(':');
   return {id,personId,personName:person.name,date,start,end,overnight:end<start,source:'synthetic-draft'};
 }
+
+/** Atomically replace a browser-only draft after validating against other drafts. */
+export function replaceDemoShiftDraft(drafts,id,input,people){
+  if(!Array.isArray(drafts)||typeof id!=='string')throw new TypeError('Invalid draft selection');
+  const index=drafts.findIndex(d=>d.id===id);
+  if(index<0)throw new TypeError('Draft no longer exists');
+  const updated=createDemoShiftDraft(input,people,drafts.filter(d=>d.id!==id));
+  return drafts.map((draft,i)=>i===index?updated:draft);
+}
