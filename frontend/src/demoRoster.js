@@ -26,3 +26,13 @@ export function demoRoster(week) {
     return planned ? {time:week === NEXT_WEEK && index === 2 ? '18:00–01:00 (+1 day)' : time} : null;
   })}));
 }
+
+// Calendar selection is a display concern, never a scheduling authority.
+export function weekForDate(value) {
+  if(typeof value!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(value))throw new TypeError('Invalid calendar date');
+  const date=new Date(value+'T12:00:00Z');
+  if(!Number.isFinite(date.getTime())||date.toISOString().slice(0,10)!==value)throw new TypeError('Invalid calendar date');
+  const mondayOffset=(date.getUTCDay()+6)%7;
+  date.setUTCDate(date.getUTCDate()-mondayOffset);
+  return date.toISOString().slice(0,10);
+}

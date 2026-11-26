@@ -32,3 +32,15 @@
 .roster-empty{padding:20px;background:#132b2c;border-radius:8px;}
 @media(max-width:700px){.roster-panel{padding:14px;}.roster-heading,.roster-footer{align-items:flex-start;}.roster-grid th:first-child{width:110px;}}
 @media(forced-colors:active){.roster-shift{border:1px solid CanvasText;}.roster-scroll:focus-visible{outline-color:Highlight;}}
+
+/* Reuse HORECA's existing navy/teal surfaces; shift colours remain semantic. */
+.roster-panel{background:linear-gradient(135deg,var(--horeca-panel-start,#12344a),var(--horeca-panel-end,#0d293d));border-color:var(--horeca-panel-border,#2d5269);color:var(--horeca-text,#edf5f8);}
+.roster-grid th{background:var(--horeca-roster-heading,#17384d);}
+.roster-controls button{background:var(--horeca-control,#17384d);border-color:var(--horeca-control-border,#34566c);}
+.roster-controls button:hover{background:var(--horeca-control-hover,#21566a);}
+.roster-action{background:var(--horeca-accent,#0d7c85);border-color:var(--horeca-accent-border,#229e9a);}
+.roster-date-label{font-size:.85rem;color:#b7cfdb;}
+.roster-controls input[type=date]{min-height:44px;max-width:100%;background:#0c273a;color:#fff;border:1px solid #385c72;border-radius:8px;padding:8px;color-scheme:dark;}
+.roster-controls input[type=date]:focus-visible{outline:3px solid #69e3e0;outline-offset:2px;}
+.roster-grid .roster-today{box-shadow:inset 0 0 0 2px #69e3e0;}
+@media(forced-colors:active){.roster-grid .roster-today{outline:2px solid Highlight;outline-offset:-2px;box-shadow:none;}}
