@@ -25,3 +25,13 @@
 .manager-illustration .manager-illustration-disclaimer{margin-top:18px}
 @media(max-width:550px){.manager-illustration{padding:12px}.manager-illustration-bars{gap:4px;height:150px}.manager-illustration-bars strong,.manager-illustration-bars small{font-size:.68rem}}
 @media(forced-colors:active){.manager-illustration{border-color:CanvasText}.manager-illustration-bar{background:Highlight}}
+
+/* Native disclosure keeps the fictional chart's numbers available without relying on bar height. */
+.manager-illustration-data{margin-top:14px;color:#edf5f8}
+.manager-illustration-data summary{cursor:pointer;min-height:44px;display:list-item;padding:11px 4px;font-weight:600}
+.manager-illustration-data summary:focus-visible{outline:3px solid #70d8d2;outline-offset:3px;border-radius:4px}
+.manager-illustration-data table{width:100%;border-collapse:collapse;text-align:left;font-size:.875rem}
+.manager-illustration-data caption{text-align:left;color:#b6cbd5;padding:10px 0}
+.manager-illustration-data th,.manager-illustration-data td{border-bottom:1px solid #315269;padding:9px 12px}
+.manager-illustration-data td{text-align:right;font-variant-numeric:tabular-nums}
+@media(forced-colors:active){.manager-illustration-data summary:focus-visible{outline-color:Highlight}}
