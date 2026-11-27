@@ -56,7 +56,7 @@ export default function WeeklySchedule(){
         </tr>)}</tbody>
       </table>
       <div id="roster-grid-detail" className="roster-grid-detail" role="status" aria-live="polite">{(()=>{if(!expandedShift)return 'Select a scheduled shift to see its details.';for(const person of roster){for(let i=0;i<days.length;i++){if(person.shifts[i]&&rosterShiftKey(person.id,days[i].key)===expandedShift)return rosterShiftDescription(person,days[i],person.shifts[i]);}}return 'Select a scheduled shift to see its details.';})()}</div>
-    </div> : !roster ? <p className="roster-empty" role="status">No fictional scheduled roster is available for this week. Drafts, if any, can be viewed in Daily agenda. Actual staffing is unknown.</p> : null}
+    </div> : !roster && view==='grid' ? <p className="roster-empty" role="status">No fictional scheduled roster is available for this week. Drafts, if any, can be viewed in Daily agenda. Actual staffing is unknown.</p> : null}
     <div className="roster-footer"><p>Demo only. Creating and publishing shifts requires the authorized Python roster API.</p><button type="button" className="roster-action" disabled>➤ Publish Schedule</button></div>
   </section>;
 }
