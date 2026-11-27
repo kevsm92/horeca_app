@@ -8,3 +8,24 @@ test('rejects cross-venue, wrong-range, unknown version and missing trusted cont
 test('rejects malformed, duplicate or missing series',()=>{for(const series of [[],[...valid().series.slice(0,3),valid().series[0]],valid().series.map((s,i)=>i===0?{...s,metric:'revenue'}:s)])assert.throws(()=>parse({...valid(),series}),HistoryContractError);});
 test('rejects negative, fractional, unsafe and unordered point values',()=>{for(const value of [-1,0.5,Number.MAX_SAFE_INTEGER+1,NaN]){const p=valid();p.series[0].points[0].value=value;assert.throws(()=>parse(p),HistoryContractError);}const p=valid();p.series[0].points.push({at:'2026-11-22T12:00:00Z',value:1});assert.throws(()=>parse(p),HistoryContractError);});
 test('rejects invalid periods, timestamps, units and currency',()=>{for(const patch of [{period_start:'2026-02-30'},{period_end:'2026-11-01'},{generated_at:'yesterday'},{currency:'€'}])assert.throws(()=>parse({...valid(),...patch}),HistoryContractError);const p=valid();p.series[1].unit='count';assert.throws(()=>parse(p),HistoryContractError);});
+
+test('compares chronological instants rather than lexicographic offset strings',()=>{
+  const validOffsets=valid();
+  validOffsets.series[0].points=[
+    {at:'2026-11-23T10:00:00+01:00',value:1},
+    {at:'2026-11-23T09:30:00Z',value:2}
+  ];
+  assert.equal(parse(validOffsets).series[0].points.length,2);
+  const reversed=valid();
+  reversed.series[0].points=[
+    {at:'2026-11-23T09:30:00Z',value:1},
+    {at:'2026-11-23T10:00:00+01:00',value:2}
+  ];
+  assert.throws(()=>parse(reversed),HistoryContractError);
+  const duplicate=valid();
+  duplicate.series[0].points=[
+    {at:'2026-11-23T09:00:00Z',value:1},
+    {at:'2026-11-23T10:00:00+01:00',value:2}
+  ];
+  assert.throws(()=>parse(duplicate),HistoryContractError);
+});
