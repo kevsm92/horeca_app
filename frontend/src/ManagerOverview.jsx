@@ -1,6 +1,7 @@
 import React,{useState} from 'react';
 import {historicalRangeLabel,historicalEmptyMessage,HISTORICAL_RANGES} from './historicalMetrics.js';
 import {demoDashboardMetrics,displayMetric} from './dashboardMetrics.js';
+import {FICTIONAL_WEEKLY_ORDERS,fictionalOrderBarPercent} from './fictionalOrderPattern.js';
 import './managerOverview.css';
 export default function ManagerOverview({tables,orders,orderValueCents,onTables,onOrders,onStaff}) {
   const [range,setRange]=useState('week');
@@ -12,7 +13,7 @@ export default function ManagerOverview({tables,orders,orderValueCents,onTables,
     <section className="manager-illustration" aria-labelledby="manager-illustration-title">
       <div><h3 id="manager-illustration-title">Illustrative weekly order pattern</h3><p>Fixed fictional example · not venue records, a forecast, captured revenue, or live statistics.</p></div>
       <ol className="manager-illustration-bars" aria-label="Fictional example orders by weekday">
-        {[['Mon',8],['Tue',12],['Wed',10],['Thu',16],['Fri',24],['Sat',28],['Sun',18]].map(([day,count])=><li key={day} aria-label={day+': '+count+' fictional example orders'}><span className="manager-illustration-bar" style={{height:(count/28*100)+'%'}} aria-hidden="true"/><strong>{count}</strong><small>{day}</small></li>)}
+        {FICTIONAL_WEEKLY_ORDERS.map(({day,count})=><li key={day} aria-label={day+': '+count+' fictional example orders'}><span className="manager-illustration-bar" style={{height:fictionalOrderBarPercent(count)+'%'}} aria-hidden="true"/><strong>{count}</strong><small>{day}</small></li>)}
       </ol>
       <p className="manager-illustration-disclaimer">Illustration only. Historical operational trends below remain unavailable until the authorized Python API supplies verified records.</p>
     </section>
