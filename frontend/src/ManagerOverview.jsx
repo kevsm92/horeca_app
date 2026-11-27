@@ -15,6 +15,14 @@ export default function ManagerOverview({tables,orders,orderValueCents,onTables,
       <ol className="manager-illustration-bars" aria-label="Fictional example orders by weekday">
         {FICTIONAL_WEEKLY_ORDERS.map(({day,count})=><li key={day} aria-label={day+': '+count+' fictional example orders'}><span className="manager-illustration-bar" style={{height:fictionalOrderBarPercent(count)+'%'}} aria-hidden="true"/><strong>{count}</strong><small>{day}</small></li>)}
       </ol>
+      <details className="manager-illustration-data">
+        <summary>View fictional order counts as a table</summary>
+        <table>
+          <caption>Illustrative fictional order counts by weekday — not venue data</caption>
+          <thead><tr><th scope="col">Weekday</th><th scope="col">Example orders</th></tr></thead>
+          <tbody>{FICTIONAL_WEEKLY_ORDERS.map(({day,count})=><tr key={day}><th scope="row">{day}</th><td>{count}</td></tr>)}</tbody>
+        </table>
+      </details>
       <p className="manager-illustration-disclaimer">Illustration only. Historical operational trends below remain unavailable until the authorized Python API supplies verified records.</p>
     </section>
     <section className="manager-history" aria-labelledby="manager-history-title">
