@@ -14,3 +14,14 @@ export function historicalViewMessage(state='unavailable') {
   if (!Object.hasOwn(messages,state)) throw new TypeError('Unknown historical view state');
   return Object.freeze({...messages[state],state});
 }
+
+// Accessible semantics for an eventual Python-backed read. Never mark an
+// unavailable/failed request as a successfully loaded metric.
+export function historicalViewAccessibility(state='unavailable') {
+  historicalViewMessage(state); // Fail closed for unsupported states.
+  return Object.freeze({
+    role: state === 'error' || state === 'forbidden' ? 'alert' : 'status',
+    busy: state === 'loading',
+    live: state === 'error' || state === 'forbidden' ? 'assertive' : 'polite',
+  });
+}
