@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {HISTORICAL_VIEW_STATES,historicalViewMessage,historicalViewAccessibility} from '../src/historicalViewState.js';
+import {HISTORICAL_VIEW_STATES,historicalViewMessage,historicalViewAccessibility,historicalConnectionNotice} from '../src/historicalViewState.js';
 
 test('every historical data state has a distinct, non-live message',()=>{
   assert.equal(new Set(HISTORICAL_VIEW_STATES.map(s=>historicalViewMessage(s).title)).size,HISTORICAL_VIEW_STATES.length);
@@ -35,4 +35,14 @@ test('accessible announcements distinguish loading, errors, and denied access',(
     assert.equal(props.live,['error','forbidden'].includes(state)?'assertive':'polite');
   }
   assert.throws(()=>historicalViewAccessibility('ready'),TypeError);
+});
+
+test('injected presentation states cannot imply a real Python API request',()=>{
+  assert.match(historicalConnectionNotice('unavailable'),/not connected/);
+  for (const state of HISTORICAL_VIEW_STATES.filter(s=>s!=='unavailable')) {
+    const notice=historicalConnectionNotice(state);
+    assert.match(notice,/Presentation preview only/);
+    assert.match(notice,/No authenticated Python API request was made/);
+  }
+  assert.throws(()=>historicalConnectionNotice('ready'),TypeError);
 });
