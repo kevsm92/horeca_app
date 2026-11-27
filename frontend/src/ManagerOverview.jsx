@@ -2,7 +2,7 @@ import React,{useState} from 'react';
 import {historicalRangeLabel,historicalEmptyMessage,HISTORICAL_RANGES} from './historicalMetrics.js';
 import {demoDashboardMetrics,displayMetric} from './dashboardMetrics.js';
 import {FICTIONAL_WEEKLY_ORDERS,fictionalOrderBarPercent} from './fictionalOrderPattern.js';
-import {historicalViewMessage,historicalViewAccessibility} from './historicalViewState.js';
+import {historicalViewMessage,historicalViewAccessibility,historicalConnectionNotice} from './historicalViewState.js';
 import './managerOverview.css';
 export default function ManagerOverview({tables,orders,orderValueCents,onTables,onOrders,onStaff,historicalState='unavailable'}) {
   const [range,setRange]=useState('week');
@@ -29,7 +29,7 @@ export default function ManagerOverview({tables,orders,orderValueCents,onTables,
       <p className="manager-illustration-disclaimer">Illustration only. Historical operational trends below remain unavailable until the authorized Python API supplies verified records.</p>
     </section>
     <section className="manager-history" aria-labelledby="manager-history-title">
-      <div className="manager-history-heading"><div><h3 id="manager-history-title">Operational trends</h3><p>Historical records are not connected to an authenticated Python API.</p></div>
+      <div className="manager-history-heading"><div><h3 id="manager-history-title">Operational trends</h3><p>{historicalConnectionNotice(historicalState)}</p></div>
         <label htmlFor="manager-history-range">Time range <select id="manager-history-range" value={range} onChange={event=>setRange(event.target.value)}>{HISTORICAL_RANGES.map(item=><option key={item.id} value={item.id}>{item.label}</option>)}</select></label>
       </div>
       <div className="manager-history-empty" role={historicalA11y.role} aria-live={historicalA11y.live} aria-busy={historicalA11y.busy}><strong>{historicalStatus.title}</strong><p>{historicalState==='unavailable'?historicalEmptyMessage(range):historicalStatus.detail}</p></div>
