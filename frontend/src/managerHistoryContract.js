@@ -27,11 +27,11 @@ export function parseManagerHistory(payload, {expectedVenueId, range} = {}) {
     if (!isRecord(item) || !HISTORY_METRICS.includes(item.metric) || seen.has(item.metric) ||
         item.unit !== expectedUnits[item.metric] || !Array.isArray(item.points)) fail();
     seen.add(item.metric);
-    let previous = '';
+    let previous = -Infinity;
     const points = item.points.map(point => {
-      if (!isRecord(point) || !isoInstant(point.at) || point.at <= previous ||
+      if (!isRecord(point) || !isoInstant(point.at) || Date.parse(point.at) <= previous ||
           !Number.isSafeInteger(point.value) || point.value < 0) fail();
-      previous = point.at;
+      previous = Date.parse(point.at);
       return Object.freeze({at:point.at,value:point.value});
     });
     return Object.freeze({metric:item.metric,unit:item.unit,points:Object.freeze(points)});
