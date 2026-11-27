@@ -25,3 +25,12 @@ export function historicalViewAccessibility(state='unavailable') {
     live: state === 'error' || state === 'forbidden' ? 'assertive' : 'polite',
   });
 }
+
+// The current dashboard has no verified historical Python API connection.
+// Even injected presentation states must never imply a real request occurred.
+export function historicalConnectionNotice(state='unavailable') {
+  historicalViewMessage(state);
+  return state === 'unavailable'
+    ? 'Historical records are not connected to an authenticated Python API.'
+    : 'Presentation preview only. No authenticated Python API request was made; this status does not describe real venue records.';
+}
