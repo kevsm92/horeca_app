@@ -81,3 +81,9 @@
 .roster-draft-form [role=alert]{color:#ffcf99;}
 .roster-drafts li{margin:8px 0;line-height:1.7;}
 .roster-drafts li button{margin-left:12px;}
+
+/* Week headers act as keyboard-accessible links to the corresponding day agenda. */
+.roster-day-link{display:block;width:100%;min-height:44px;padding:6px 2px;border:1px solid transparent;border-radius:6px;background:transparent;color:inherit;font:inherit;font-weight:inherit;cursor:pointer;}
+.roster-day-link:hover{background:var(--horeca-control-hover,#21566a);text-decoration:underline;}
+.roster-day-link:focus-visible{outline:3px solid #69e3e0;outline-offset:2px;}
+@media(forced-colors:active){.roster-day-link:focus-visible{outline-color:Highlight;}}
