@@ -2,6 +2,7 @@
 from datetime import date, datetime, timedelta
 from zoneinfo import ZoneInfo
 import unittest
+from roster_overlap import overlaps_roster_week
 
 BRUSSELS = ZoneInfo("Europe/Brussels")
 
@@ -25,7 +26,7 @@ def weekly_roster(venue_id, week_start, shifts, staff):
             raise ValueError("shift must end after start")
         local_start = start.astimezone(BRUSSELS)
         local_end = end.astimezone(BRUSSELS)
-        if not (week_start <= local_start.date() < end_day):
+        if not overlaps_roster_week(start, end, week_start):
             continue
         output.append({"id": shift["id"], "staff_id": shift["staff_id"],
                        "staff_name": people[shift["staff_id"]]["name"],
