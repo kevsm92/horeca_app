@@ -38,6 +38,8 @@ test('manager KPI presentation degrades safely for corrupt synthetic fixtures',(
   ]) {
     const result=safeDemoDashboardMetrics(input);
     assert.equal(result.invalidDemoData,true);
-    assert.deepEqual(result.metrics,[]);
+    assert.deepEqual(result.metrics.map(metric=>metric.id),['presence','upcoming','revenue','requests']);
+    assert.ok(result.metrics.every(metric=>metric.value==='Unavailable' && metric.status==='Not connected'));
+    assert.ok(result.metrics.every(metric=>metric.source==='unavailable'));
   }
 });
