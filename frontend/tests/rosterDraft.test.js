@@ -19,3 +19,13 @@ test('duplicate draft is rejected but distinct time remains possible',()=>{
  assert.throws(()=>createDemoShiftDraft(valid,staff,[first]),/Identical draft/);
  assert.doesNotThrow(()=>createDemoShiftDraft({...valid,start:'10:00'},staff,[first]));
 });
+
+// Lightweight source regression for the accessible week-scoped draft indicator.
+test('weekly roster labels browser-only drafts for the selected week',async()=>{
+ const {readFileSync}=await import('node:fs');
+ const {fileURLToPath}=await import('node:url');
+ const source=readFileSync(fileURLToPath(new URL('../src/WeeklySchedule.jsx',import.meta.url)),'utf8');
+ assert.match(source,/const weekDrafts = drafts\.filter\(draft=>days\.some\(day=>day\.key===draft\.date\)\)/);
+ assert.match(source,/role="status" aria-live="polite"[^>]*>\{weekDrafts\.length\} unsaved fictional/);
+ assert.match(source,/this week · not published/);
+});
