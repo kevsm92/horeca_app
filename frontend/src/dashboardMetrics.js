@@ -51,6 +51,14 @@ export function safeDemoDashboardMetrics(input) {
     return {metrics: demoDashboardMetrics(input).map(displayMetric), invalidDemoData: false};
   } catch (error) {
     if (!(error instanceof TypeError)) throw error;
-    return {metrics: [], invalidDemoData: true};
+    // Preserve explicitly unavailable operational cards even if fictional fixtures are corrupt.
+    // Never replace unavailable data with zero or invent a live reading.
+    const unavailable = [
+      {id:'presence',label:'Actually clocked in',value:null,detail:'No verified attendance API connected',source:'unavailable'},
+      {id:'upcoming',label:'Upcoming shifts',value:null,detail:'No authenticated roster API connected',source:'unavailable'},
+      {id:'revenue',label:'Captured revenue',value:null,detail:'No verified payment capture data',source:'unavailable'},
+      {id:'requests',label:'Pending staff requests',value:null,detail:'No verified requests API connected',source:'unavailable'},
+    ];
+    return {metrics: unavailable.map(displayMetric), invalidDemoData: true};
   }
 }
