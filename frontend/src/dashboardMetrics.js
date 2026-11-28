@@ -5,9 +5,14 @@ function validDemoInputs({tables,orders,orderValueCents}={}) {
       !Number.isSafeInteger(orderValueCents) || orderValueCents < 0) {
     throw new TypeError('Invalid fictional dashboard inputs');
   }
+  let totalGuests = 0;
   for (const table of tables) {
     if (!table || !Number.isSafeInteger(table.guests) || table.guests < 0) {
       throw new TypeError('Invalid fictional table occupancy');
+    }
+    totalGuests += table.guests;
+    if (!Number.isSafeInteger(totalGuests)) {
+      throw new TypeError('Fictional guest total exceeds safe integer range');
     }
   }
   for (const order of orders) {
