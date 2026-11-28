@@ -19,3 +19,8 @@ test('malformed synthetic KPI inputs fail closed instead of showing misleading c
     {...sample,orderValueCents:1.5},
   ]) assert.throws(()=>demoDashboardMetrics(bad),TypeError);
 });
+
+test('fictional guest totals reject safe-integer overflow',()=>{
+  assert.throws(()=>demoDashboardMetrics({...sample,tables:[{guests:Number.MAX_SAFE_INTEGER},{guests:1}]}),TypeError);
+  assert.equal(demoDashboardMetrics({...sample,tables:[{guests:Number.MAX_SAFE_INTEGER}]}).find(m=>m.id==='guests').value,String(Number.MAX_SAFE_INTEGER));
+});
