@@ -6,3 +6,16 @@ test('fictional operational counts reflect browser state, not a live API',()=>{c
 test('unknown workforce and payment data are unavailable rather than zero',()=>{const metrics=demoDashboardMetrics(sample);for(const id of ['presence','upcoming','revenue','requests']){const metric=displayMetric(metrics.find(m=>m.id===id));assert.equal(metric.value,'Unavailable');assert.equal(metric.status,'Not connected');}});
 test('demo order value never claims captured revenue',()=>{const metrics=demoDashboardMetrics(sample);assert.match(metrics.find(m=>m.id==='orders').detail,/not captured revenue/);assert.equal(metrics.find(m=>m.id==='revenue').value,null);});
 test('presentation rejects unknown source and absent demo values',()=>{assert.throws(()=>displayMetric({source:'live',value:4}),TypeError);assert.throws(()=>displayMetric({source:'demo',value:null}),TypeError);});
+
+test('malformed synthetic KPI inputs fail closed instead of showing misleading counts',()=>{
+  for (const bad of [
+    {...sample,tables:null},
+    {...sample,tables:[{guests:-1}]},
+    {...sample,tables:[{guests:NaN}]},
+    {...sample,orders:[null]},
+    {...sample,orders:[{status:''}]},
+    {...sample,orderValueCents:NaN},
+    {...sample,orderValueCents:-1},
+    {...sample,orderValueCents:1.5},
+  ]) assert.throws(()=>demoDashboardMetrics(bad),TypeError);
+});
