@@ -1,5 +1,24 @@
-// Presentation-only classification: Python remains authoritative for live metrics.
-export function demoDashboardMetrics({tables, orders, orderValueCents}) {
+// Presentation-only synthetic metrics. Python remains authoritative for live metrics.
+// Reject malformed demo fixtures rather than rendering misleading operational KPIs.
+function validDemoInputs({tables,orders,orderValueCents}={}) {
+  if (!Array.isArray(tables) || !Array.isArray(orders) ||
+      !Number.isSafeInteger(orderValueCents) || orderValueCents < 0) {
+    throw new TypeError('Invalid fictional dashboard inputs');
+  }
+  for (const table of tables) {
+    if (!table || !Number.isSafeInteger(table.guests) || table.guests < 0) {
+      throw new TypeError('Invalid fictional table occupancy');
+    }
+  }
+  for (const order of orders) {
+    if (!order || typeof order.status !== 'string' || !order.status.trim()) {
+      throw new TypeError('Invalid fictional order status');
+    }
+  }
+}
+
+export function demoDashboardMetrics({tables, orders, orderValueCents}={}) {
+  validDemoInputs({tables,orders,orderValueCents});
   return [
     {id:'occupied',label:'Occupied tables',value:`${tables.filter(t=>t.guests>0).length} / ${tables.length}`,detail:'Fictional seating state',source:'demo'},
     {id:'guests',label:'Seated guests',value:String(tables.reduce((sum,t)=>sum+t.guests,0)),detail:'Fictional guest count',source:'demo'},
