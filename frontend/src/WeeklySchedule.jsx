@@ -12,9 +12,9 @@ export default function WeeklySchedule(){
   const [drafts,setDrafts] = useState([]);
   const [draftOpen,setDraftOpen] = useState(false);
   const draftHeadingRef = useRef(null);
-  useEffect(()=>{if(draftOpen)draftHeadingRef.current?.focus();},[draftOpen,editingDraftId,copyDraft]);
   const [editingDraftId,setEditingDraftId] = useState(null);
   const [copyDraft,setCopyDraft] = useState(null);
+  useEffect(()=>{if(draftOpen)draftHeadingRef.current?.focus();},[draftOpen,editingDraftId,copyDraft]);
   const editingDraft=drafts.find(d=>d.id===editingDraftId)||null;
   const formDraft=editingDraft||copyDraft;
   const [draftError,setDraftError] = useState('');
