@@ -48,3 +48,13 @@ test('daily agenda can duplicate an unsaved draft without publishing',async()=>{
  assert.match(source,/setCopyDraft\(\{\.\.\.draft,id:"copy:"\+draft\.id\}\);setDraftOpen\(true\)/);
  assert.match(source,/Change the date or time before adding this duplicate draft\./);
 });
+
+test('weekly grid offers draft duplication with unpublished preview guidance',async()=>{
+ const {readFileSync}=await import('node:fs');
+ const {fileURLToPath}=await import('node:url');
+ const source=readFileSync(fileURLToPath(new URL('../src/WeeklySchedule.jsx',import.meta.url)),'utf8');
+ assert.match(source,/Duplicate unsaved draft for '\+draft\.personName\+' on '\+draft\.date\+' from weekly grid'/);
+ assert.match(source,/setCopyDraft\(\{\.\.\.draft,id:'copy:'\+draft\.id\}\);setDraftOpen\(true\)/);
+ assert.match(source,/Change the date or time before adding this duplicate draft\./);
+ assert.match(source,/Local preview only — not published or saved to a server\./);
+});
