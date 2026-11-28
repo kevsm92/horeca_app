@@ -58,3 +58,12 @@ test('weekly grid offers draft duplication with unpublished preview guidance',as
  assert.match(source,/Change the date or time before adding this duplicate draft\./);
  assert.match(source,/Local preview only — not published or saved to a server\./);
 });
+
+test('draft editor focuses its heading and offers cancellation for new as well as edited drafts',async()=>{
+ const {readFileSync}=await import('node:fs');
+ const {fileURLToPath}=await import('node:url');
+ const source=readFileSync(fileURLToPath(new URL('../src/WeeklySchedule.jsx',import.meta.url)),'utf8');
+ assert.match(source,/useEffect\(\(\)=>\{if\(draftOpen\)draftHeadingRef\.current\?\.focus\(\);\},\[draftOpen,editingDraftId,copyDraft\]\)/);
+ assert.match(source,/<h3 ref=\{draftHeadingRef\} tabIndex=\{-1\}>/);
+ assert.match(source,/<button type="button" onClick=\{\(\)=>\{setEditingDraftId\(null\);setCopyDraft\(null\);setDraftOpen\(false\);setDraftError\(''\);\}\}>Cancel draft form<\/button>/);
+});
