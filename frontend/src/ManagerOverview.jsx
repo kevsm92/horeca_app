@@ -1,6 +1,6 @@
 import React,{useState} from 'react';
 import {historicalRangeLabel,historicalEmptyMessage,HISTORICAL_RANGES} from './historicalMetrics.js';
-import {demoDashboardMetrics,displayMetric} from './dashboardMetrics.js';
+import {safeDemoDashboardMetrics} from './dashboardMetrics.js';
 import {FICTIONAL_WEEKLY_ORDERS,fictionalOrderBarPercent} from './fictionalOrderPattern.js';
 import {historicalViewMessage,historicalViewAccessibility,historicalConnectionNotice} from './historicalViewState.js';
 import './managerOverview.css';
@@ -8,9 +8,10 @@ export default function ManagerOverview({tables,orders,orderValueCents,onTables,
   const [range,setRange]=useState('week');
   const historicalStatus=historicalViewMessage(historicalState);
   const historicalA11y=historicalViewAccessibility(historicalState);
-  const metrics=demoDashboardMetrics({tables,orders,orderValueCents}).map(displayMetric);
+  const {metrics,invalidDemoData}=safeDemoDashboardMetrics({tables,orders,orderValueCents});
   return <section aria-labelledby="manager-overview-title" className="manager-overview">
     <div className="manager-overview-heading"><div><h2 id="manager-overview-title">Manager overview</h2><p>Fictional venue preview. Live workforce and financial totals are not connected.</p></div><span className="manager-overview-mode">DEMO · NOT LIVE</span></div>
+    {invalidDemoData && <p role="alert">Fictional dashboard counts are unavailable because the demo data is invalid. No operational totals have been inferred.</p>}
     <div className="manager-overview-metrics">{metrics.map(metric=><article key={metric.id} className="manager-overview-metric"><span>{metric.label}</span><strong>{metric.value}</strong><small>{metric.status}</small><p>{metric.detail}</p></article>)}</div>
     <div className="manager-overview-actions"><button type="button" onClick={onTables}>Open floor plan</button><button type="button" onClick={onOrders}>Take order</button><button type="button" onClick={onStaff}>Open weekly staff roster</button></div>
     <section className="manager-illustration" aria-labelledby="manager-illustration-title">
