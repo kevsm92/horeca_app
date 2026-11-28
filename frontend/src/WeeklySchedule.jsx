@@ -1,4 +1,4 @@
-import React,{useState} from 'react';
+import React,{useEffect,useRef,useState} from 'react';
 import {DEMO_WEEK,shiftWeek,weekDays,demoRoster,weekForDate} from './demoRoster.js';
 import './weeklySchedule.css';
 import {rosterShiftKey,rosterShiftDescription} from './rosterShiftDetails.js';
@@ -11,6 +11,8 @@ export default function WeeklySchedule(){
   const [expandedShift,setExpandedShift] = useState(null);
   const [drafts,setDrafts] = useState([]);
   const [draftOpen,setDraftOpen] = useState(false);
+  const draftHeadingRef = useRef(null);
+  useEffect(()=>{if(draftOpen)draftHeadingRef.current?.focus();},[draftOpen,editingDraftId,copyDraft]);
   const [editingDraftId,setEditingDraftId] = useState(null);
   const [copyDraft,setCopyDraft] = useState(null);
   const editingDraft=drafts.find(d=>d.id===editingDraftId)||null;
@@ -29,12 +31,12 @@ export default function WeeklySchedule(){
       <button type="button" className="roster-action" aria-expanded={draftOpen} aria-controls="roster-draft-form" onClick={()=>{setDraftOpen(open=>!open);setEditingDraftId(null);setCopyDraft(null);setDraftError("");}}>+ Create Demo Draft</button>
     </div>
     {draftOpen&&<form id="roster-draft-form" className="roster-draft-form" onSubmit={event=>{event.preventDefault();const fields=new FormData(event.currentTarget);try{const input=Object.fromEntries(fields);if(editingDraft){setDrafts(old=>replaceDemoShiftDraft(old,editingDraft.id,input,demoRoster(DEMO_WEEK)));setEditingDraftId(null);setCopyDraft(null);setDraftOpen(false);setDraftNotice('Fictional shift draft updated in this browser only. Nothing was published.');}else{const draft=createDemoShiftDraft(input,demoRoster(DEMO_WEEK),drafts);setDrafts(old=>[...old,draft]);setCopyDraft(null);event.currentTarget.reset();setDraftNotice('Fictional shift draft added in this browser only. Nothing was published.');}chooseDate(input.date);setView('grid');setExpandedShift(null);setDraftError('');}catch(error){setDraftError(error.message);setDraftNotice('');}}}>
-      <h3>{editingDraft?'Edit fictional shift draft':copyDraft?'Duplicate fictional shift draft':'New fictional shift draft'}</h3><p>Local preview only — not published or saved to a server.</p>
+      <h3 ref={draftHeadingRef} tabIndex={-1}>{editingDraft?'Edit fictional shift draft':copyDraft?'Duplicate fictional shift draft':'New fictional shift draft'}</h3><p>Local preview only — not published or saved to a server.</p>
       <label>Employee<select key={formDraft?.id||"new-person"} name="personId" required defaultValue={formDraft?.personId||""}><option value="" disabled>Select fictional employee</option>{(demoRoster(DEMO_WEEK)||[]).map(person=><option value={person.id} key={person.id}>{person.name} · {person.role}</option>)}</select></label>
       <label>Date<input key={formDraft?.id||"new-date"} name="date" type="date" required defaultValue={formDraft?.date||selectedDate}/></label>
       <label>Start<input key={formDraft?.id||"new-start"} name="start" type="time" required defaultValue={formDraft?.start||"09:00"}/></label>
       <label>End<input key={formDraft?.id||"new-end"} name="end" type="time" required defaultValue={formDraft?.end||"17:00"}/></label>
-      <button type="submit">{editingDraft?"Save demo changes":copyDraft?"Add duplicated demo draft":"Add demo draft"}</button>{(editingDraft||copyDraft)&&<button type="button" onClick={()=>{setEditingDraftId(null);setCopyDraft(null);setDraftOpen(false);setDraftError("");}}>Cancel</button>}
+      <button type="submit">{editingDraft?"Save demo changes":copyDraft?"Add duplicated demo draft":"Add demo draft"}</button><button type="button" onClick={()=>{setEditingDraftId(null);setCopyDraft(null);setDraftOpen(false);setDraftError('');}}>Cancel draft form</button>
       {draftError&&<p role="alert">{draftError}</p>}
     </form>}
     <p className="sr-only" role="status" aria-live="polite" aria-atomic="true">{draftNotice}</p>
