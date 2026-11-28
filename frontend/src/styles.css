@@ -1,0 +1,243 @@
+:root{font-family:Inter,system-ui,sans-serif;color:#edf5f8;background:#081e30}*{box-sizing:border-box}body{margin:0}button,input,select{font:inherit}button{cursor:pointer;border:1px solid #34566c;background:#17384d;color:white;border-radius:9px;padding:10px}button:hover{background:#21566a}button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #69e3e0;outline-offset:2px}header{display:flex;align-items:center;gap:25px;justify-content:space-between;background:#0b2539;border-bottom:1px solid #315066;padding:18px 25px}header b{font-size:26px}header span{color:#b7cfdb}.shell{display:grid;grid-template-columns:210px 1fr;min-height:calc(100vh - 70px)}nav{background:#0a2538;border-right:1px solid #2c4d61;padding:16px 10px}nav button{display:block;width:100%;text-align:left;border:0;background:transparent;padding:15px;margin:2px 0}nav button.active{background:linear-gradient(100deg,#159d9b,#0d7c85)}main{padding:28px;min-width:0}.heading{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}.heading small,.dish small{color:#64d4d2;letter-spacing:.12em;text-transform:uppercase}.heading h1{font-size:32px;margin:5px 0}.heading span,.muted{color:#b0c6d1;font-size:13px}.notice{background:#1b5661;padding:12px;border-radius:8px}.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:15px;margin-bottom:20px}.metric,.panel,.dish{background:linear-gradient(135deg,#12344a,#0d293d);border:1px solid #2d5269;border-radius:14px;padding:20px}.metric span,.metric small{display:block;color:#b6cbd5;font-size:13px}.metric strong{display:block;font-size:28px;margin:12px 0}.panel h2{margin-top:0}.columns{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:20px}.floor{height:520px;border:8px solid #b7ada1;position:relative;overflow:hidden;background:repeating-linear-gradient(0deg,#a67955 0,#a67955 18px,#8d6246 19px,#b28360 38px);border-radius:10px}.floor-table{position:absolute;transform:translate(-50%,-50%);height:75px;width:94px;background:linear-gradient(125deg,#94e49e,#54bd77);color:#102a1a;border:3px solid #398552;display:flex;flex-direction:column;justify-content:center;align-items:center;box-shadow:0 4px 9px #382b23aa}.floor-table.occupied{background:linear-gradient(125deg,#ffe38c,#f4bd3b);border-color:#bb8a25}.floor-table.selected{outline:4px solid #329cf5;outline-offset:5px}.floor-table b{font-size:20px}.floor-table small{font-size:13px}.stepper{display:flex;align-items:center;justify-content:space-between;margin:20px 0}.primary{background:linear-gradient(110deg,#1ca6a1,#0d7c85);border-color:#229e9a;width:100%;margin:12px 0;font-weight:700}.filters{display:flex;gap:10px;margin-bottom:15px}.filters input{flex:1}.filters input,.filters select,.panel select{background:#0c273a;color:white;border:1px solid #385c72;padding:11px;border-radius:8px;min-width:0}.panel select{display:block;width:100%;margin:12px 0}.dishes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.dish{padding:0;overflow:hidden}.dish img{display:block;width:100%;height:180px;object-fit:cover}.dish>div{padding:16px}.dish h3{margin:8px 0 15px}.dish-foot,.total,.line{display:flex;align-items:center;justify-content:space-between;gap:10px}.cart-row{display:flex;align-items:center;gap:8px;justify-content:space-between;padding:12px 0;border-bottom:1px solid #315269}.cart-row span{flex:1}.cart-row button{padding:5px 9px}.total{margin-top:20px;border-top:1px solid #45677a;padding-top:15px}.lanes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px}.ticket{border:1px solid #39637a;border-radius:10px;padding:14px;margin:12px 0;background:#173b52}.ticket button{display:block;margin-top:14px}.line{padding:16px 0;border-bottom:1px solid #305267}@media(max-width:1050px){.columns{grid-template-columns:1fr}.metrics{grid-template-columns:repeat(2,1fr)}.lanes{grid-template-columns:1fr}}@media(max-width:700px){header span{display:none}.shell{display:block}nav{display:flex;overflow:auto;padding:7px}nav button{white-space:nowrap;width:auto}.heading{display:block}.metrics,.dishes{grid-template-columns:1fr}main{padding:15px}.floor{height:430px}.floor-table{width:70px;height:60px}}
+.floor-table{touch-action:none;user-select:none;cursor:grab}.floor-table:active{cursor:grabbing}.floor-table:focus-visible{outline:4px solid #69e3e0;outline-offset:6px}
+
+/* Floor-plan furniture is decorative: physical seats and occupancy remain Python-owned. */
+.floor-table.round{width:84px;height:84px;border-radius:50%}
+.floor-chair{position:absolute;pointer-events:none;display:block;background:linear-gradient(135deg,#dce4e5,#8e9ea4);border:2px solid #59676d;border-radius:6px;z-index:-1;box-shadow:0 2px 4px #35281d66}
+.floor-chair.top,.floor-chair.bottom{width:24px;height:14px;left:var(--chair-offset);transform:translateX(-50%)}
+.floor-chair.top{top:-16px}.floor-chair.bottom{bottom:-16px}
+.floor-chair.left,.floor-chair.right{width:14px;height:24px;top:var(--chair-offset);transform:translateY(-50%)}
+.floor-chair.left{left:-16px}.floor-chair.right{right:-16px}
+@media(max-width:700px){.floor-table.round{width:64px;height:64px}.floor-chair.top,.floor-chair.bottom{width:18px;height:11px}.floor-chair.left,.floor-chair.right{width:11px;height:18px}}
+
+/* Floor-plan usability: retain a navigable layout on narrow screens. */
+.floor { isolation:isolate; min-width:0; }
+.floor-table { z-index:1; }
+.floor-table.selected,.floor-table:focus-visible { z-index:2; }
+.floor-chair { z-index:-1; }
+@media (max-width:700px) {
+  .floor { height:400px; }
+  .floor-table { width:64px; height:58px; }
+  .floor-table.round { width:64px; height:64px; }
+  .floor-table b { font-size:16px; }
+  .floor-table small { font-size:11px; }
+}
+@media (prefers-reduced-motion:reduce) {
+  .floor-table { scroll-behavior:auto; }
+}
+
+/* Floor-plan controls and assistive movement feedback. */
+.floor-reset{margin:0 0 12px 0}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+
+/* Visible-on-focus bypass for the persistent navigation. */
+.skip-link{position:absolute;left:12px;top:8px;z-index:100;transform:translateY(-160%);background:#edf5f8;color:#081e30;padding:12px 16px;border-radius:8px;font-weight:700}
+.skip-link:focus-visible{transform:translateY(0);outline:3px solid #69e3e0;outline-offset:2px}
+
+/* Searchable synthetic reservation list. */
+.reservation-search{display:block;width:100%;max-width:420px;margin:10px 0 14px;background:#0c273a;color:#fff;border:1px solid #385c72;padding:11px;border-radius:8px}
+@media(max-width:700px){.panel .line{flex-wrap:wrap;align-items:flex-start}}
+
+
+/* Mobile service workflows: keep navigation and POS controls usable without
+   clipping labels or requiring precision taps. This is presentation-only. */
+@media (max-width:700px) {
+  nav {
+    gap:4px;
+    overscroll-behavior-x:contain;
+    -webkit-overflow-scrolling:touch;
+    scroll-padding-inline:12px;
+  }
+  nav button {
+    flex:0 0 auto;
+    min-height:44px;
+    padding:11px 14px;
+  }
+  .filters { flex-wrap:wrap; }
+  .filters input { flex:1 1 180px; min-width:0; }
+  .filters select { flex:1 1 120px; min-height:44px; }
+  .cart-row { flex-wrap:wrap; }
+  .cart-row span { flex:1 1 100%; overflow-wrap:anywhere; }
+  .cart-row button { min-width:44px; min-height:44px; }
+  .ticket button { min-height:44px; }
+}
+
+/* Windows high-contrast mode: gradients and shadows cannot convey table state.
+   Keep keyboard focus, occupancy, selection and ticket actions discernible. */
+@media (forced-colors: active) {
+  .floor-table,
+  .floor-table.occupied,
+  .floor-table.selected,
+  .floor-table:focus-visible {
+    forced-color-adjust: auto;
+    background: Canvas;
+    color: CanvasText;
+    border: 2px solid ButtonText;
+    box-shadow: none;
+  }
+  .floor-table.occupied { border-style: double; border-width: 4px; }
+  .floor-table.selected { outline: 3px solid Highlight; outline-offset: 3px; }
+  .floor-table:focus-visible { outline: 4px solid Highlight; outline-offset: 5px; }
+  .floor-chair { background: Canvas; border-color: ButtonText; box-shadow: none; }
+  nav button.active { border: 2px solid Highlight; }
+  .primary, .ticket button { border: 2px solid ButtonText; }
+  .skip-link:focus-visible { outline-color: Highlight; }
+}
+
+
+/* Long dish names, ticket identifiers and reservation details must remain
+   readable at 320px and with enlarged text, without horizontal page scroll. */
+.lanes > .panel,
+.ticket,
+.reservation-results,
+.reservation-results .line {
+  min-width:0;
+}
+.ticket,
+.ticket p,
+.reservation-results .line > span,
+.reservation-results .line > b {
+  overflow-wrap:anywhere;
+}
+.ticket button {
+  max-width:100%;
+  white-space:normal;
+  text-align:left;
+}
+.reservation-results {
+  list-style:none;
+  margin:0;
+  padding:0;
+}
+.reservation-results .line {
+  flex-wrap:wrap;
+  align-items:baseline;
+}
+@media (max-width:700px) {
+  .ticket button { min-height:44px; }
+  .reservation-results .line > b { margin-left:auto; }
+}
+
+/* Zoom and narrow viewport resilience for summary cards and table controls.
+   Synthetic UI presentation only; no seating rules or persistence live here. */
+.heading, .stepper, .metric, .total { min-width:0; }
+.heading > div, .heading h1, .metric strong, .metric span,
+.stepper > b, .total > b { min-width:0; overflow-wrap:anywhere; }
+.stepper { gap:12px; }
+.stepper > button { flex:0 0 auto; min-width:44px; min-height:44px; }
+.stepper > b { text-align:center; }
+@media (max-width:700px) {
+  .heading h1 { font-size:clamp(1.5rem,7vw,2rem); }
+  .metrics { grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr)); }
+  .metric { padding:16px; }
+  .total { flex-wrap:wrap; }
+}
+
+/* Read-only Python catalog and POS drafts: preserve readable controls and
+   product descriptions at high zoom without implying checkout capability. */
+.dishes, .dish, .dish > div, .dish-foot, .filters { min-width:0; }
+.dish h3, .dish p, .dish-foot b, .cart-row span {
+  overflow-wrap:anywhere;
+}
+.dish-foot { flex-wrap:wrap; gap:10px; }
+.dish-foot button { min-height:44px; white-space:normal; }
+.filters input, .filters select { max-width:100%; }
+.filters button, .filters select { min-height:44px; }
+@media (max-width:700px) {
+  .dish { padding:16px; }
+  .dish-foot button { flex:1 1 auto; }
+}
+
+/* Narrow-screen operations lists: keep long ingredient names, shift labels,
+   quantities and SOP descriptions readable at large text sizes. Demo only. */
+.panel > .line { min-width:0; gap:12px; }
+.panel > .line > b, .panel > .line > span { min-width:0; overflow-wrap:anywhere; }
+.panel > label.line { cursor:pointer; }
+.panel > label.line > span { display:flex; align-items:flex-start; gap:10px; }
+.panel > label.line input[type="checkbox"] { flex:0 0 auto; width:20px; height:20px; margin:2px 0 0; accent-color:#69e3e0; }
+@media (max-width:700px) {
+  .panel > .line { flex-wrap:wrap; align-items:flex-start; }
+  .panel > .line > b { margin-left:auto; }
+  .panel > label.line > span { flex:1 1 100%; }
+}
+
+
+/* Compact navigation at 200% zoom: retain a readable header and visible
+   keyboard focus in the horizontally scrollable SPA tab strip. */
+header { min-width:0; flex-wrap:wrap; }
+header > b, header > span { min-width:0; overflow-wrap:anywhere; }
+nav button { scroll-margin-inline:12px; }
+@media (max-width:700px) {
+  header { gap:8px 16px; padding:12px 15px; }
+  header b { font-size:clamp(1.25rem,5vw,1.625rem); }
+  nav { scrollbar-width:thin; }
+  nav button:focus-visible { outline-offset:-3px; }
+}
+
+/* Disabled catalog actions are non-interactive, including in forced-colors mode.
+   Keep unavailable menu items distinguishable without relying on color alone. */
+button:disabled {
+  cursor:not-allowed;
+  opacity:.55;
+}
+button:disabled:hover { background:#17384d; }
+@media (forced-colors:active) {
+  button:disabled { opacity:1; color:GrayText; border-color:GrayText; }
+  button:disabled:hover { background:ButtonFace; }
+}
+
+/* Task checklist: make the full checkbox row visibly keyboard-focused.
+   The outline follows the native input focus, including high-contrast mode. */
+.panel > label.line:focus-within {
+  outline:3px solid #69e3e0;
+  outline-offset:3px;
+  border-radius:6px;
+}
+@media (forced-colors:active) {
+  .panel > label.line:focus-within { outline-color:Highlight; }
+}
+
+/* Keep the fictional-venue DEMO marker visible on compact screens.
+   The original mobile rule hides both header spans, obscuring demo status. */
+@media (max-width:700px) {
+  header > span:last-child {
+    display:inline;
+    font-size:.8125rem;
+    font-weight:700;
+    color:#b7cfdb;
+    overflow-wrap:anywhere;
+  }
+}
+
+/* Programmatically focused catalog results need a visible destination for keyboard users.
+   Do not add the region to the normal Tab sequence (tabIndex=-1 in React). */
+#python-menu-results:focus { outline:3px solid #69e3e0; outline-offset:4px; border-radius:8px; }
+@media (forced-colors:active) {
+  #python-menu-results:focus { outline-color:Highlight; }
+}
+
+/* Match menu catalog keyboard jump affordance in the authenticated POS draft.
+   Programmatic focus is visible, without adding a normal Tab stop. */
+#catalog-pos-results:focus { outline:3px solid #69e3e0; outline-offset:4px; border-radius:8px; }
+@media (forced-colors:active) {
+  #catalog-pos-results:focus { outline-color:Highlight; }
+}
+
+/* Reservation filter keyboard destination, including zero matches. */
+#reservation-results:focus { outline:3px solid #69e3e0; outline-offset:4px; border-radius:8px; }
+@media (forced-colors:active) {
+  #reservation-results:focus { outline-color:Highlight; }
+}
+
+/* Visible focus destination for synthetic POS filter results, even with no matches. */
+#pos-dish-results:focus { outline:3px solid #69e3e0; outline-offset:4px; border-radius:8px; }
+@media (forced-colors:active) {
+  #pos-dish-results:focus { outline-color:Highlight; }
+}
+
+/* The SPA moves keyboard focus to <main> after navigation and via the skip link.
+   Mark that destination visibly without adding a permanent tab stop or layout shift. */
+main:focus { outline:3px solid #69e3e0; outline-offset:-3px; }
+@media (forced-colors:active) {
+  main:focus { outline-color:Highlight; }
+}

@@ -1,0 +1,185 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {filterMenu} from '../src/menuViewModel.js';
+const items=[{id:'soup',kind:'food',name:'Tomato Soup'},{id:'water',kind:'drink',name:'Sparkling Water'}];
+test('filters authenticated catalog by food/drink and name',()=>{
+ assert.deepEqual(filterMenu(items,' soup ','food'),[items[0]]);
+ assert.deepEqual(filterMenu(items,'water','drink'),[items[1]]);
+ assert.deepEqual(filterMenu(items,'','all'),items);
+});
+test('empty catalog and no matches stay empty',()=>{
+ assert.deepEqual(filterMenu([]),[]);
+ assert.deepEqual(filterMenu(items,'not here'),[]);
+});
+test('rejects malformed filter parameters',()=>{
+ assert.throws(()=>filterMenu(null));
+ assert.throws(()=>filterMenu(items,'','invalid'));
+});
+
+test('accent-insensitive search supports composed and decomposed Unicode without mutating catalog',()=>{
+ const accented=[{id:'cafe',kind:'drink',name:'Café crème'},{id:'jalapeno',kind:'food',name:'Jalapeño tapas'},{id:'brulee',kind:'food',name:'Crème brûlée'}];
+ const snapshot=JSON.stringify(accented);
+ assert.deepEqual(filterMenu(accented,' CAFE ','drink'),[accented[0]]);
+ assert.deepEqual(filterMenu(accented,'jalapeno','food'),[accented[1]]);
+ assert.deepEqual(filterMenu(accented,'bru\u0302le\u0301e','food'),[accented[2]]);
+ assert.deepEqual(filterMenu(accented,'cafe','food'),[]);
+ assert.equal(JSON.stringify(accented),snapshot);
+});
+
+test('search tolerates repeated and nonbreaking whitespace in catalog and input',()=>{
+ const catalog=[{id:'one',kind:'food',name:'Crème\u00a0\u00a0brûlée'},{id:'two',kind:'drink',name:'Iced\n Coffee'}];
+ const snapshot=JSON.stringify(catalog);
+ assert.deepEqual(filterMenu(catalog,'  creme   brulee  ','food'),[catalog[0]]);
+ assert.deepEqual(filterMenu(catalog,'iced\tcoffee','drink'),[catalog[1]]);
+ assert.deepEqual(filterMenu(catalog,'coffee','food'),[]);
+ assert.equal(JSON.stringify(catalog),snapshot);
+});
+
+test('catalog search includes optional descriptions without changing kind filtering',()=>{
+ const catalog=[{id:'one',kind:'food',name:'Seasonal plate',description:'Roasted aubergine with herbs'},{id:'two',kind:'drink',name:'House special',description:'Café au lait'},{id:'three',kind:'food',name:'Soup',description:null}];
+ const snapshot=JSON.stringify(catalog);
+ assert.deepEqual(filterMenu(catalog,'aubergine','food'),[catalog[0]]);
+ assert.deepEqual(filterMenu(catalog,'cafe','drink'),[catalog[1]]);
+ assert.deepEqual(filterMenu(catalog,'cafe','food'),[]);
+ assert.deepEqual(filterMenu(catalog,'soup','food'),[catalog[2]]);
+ assert.equal(JSON.stringify(catalog),snapshot);
+});
+
+test('multi-term search spans product name and description regardless of term order',()=>{
+ const catalog=[
+  {id:'one',kind:'food',name:'Autumn Bowl',description:'Roasted pumpkin and sage'},
+  {id:'two',kind:'drink',name:'Pumpkin Latte',description:'Warm spices'},
+  {id:'three',kind:'food',name:'Autumn Salad',description:'Fresh herbs'}
+ ];
+ const snapshot=JSON.stringify(catalog);
+ assert.deepEqual(filterMenu(catalog,'sage autumn','food'),[catalog[0]]);
+ assert.deepEqual(filterMenu(catalog,'  PUMPKIN   bowl  ','all'),[catalog[0]]);
+ assert.deepEqual(filterMenu(catalog,'pumpkin','drink'),[catalog[1]]);
+ assert.deepEqual(filterMenu(catalog,'sage autumn','drink'),[]);
+ assert.equal(JSON.stringify(catalog),snapshot);
+});
+
+test('rejects non-string catalog search queries without mutating products',()=>{
+ const snapshot=JSON.stringify(items);
+ for(const query of [null,42,{},['soup']]){
+  assert.throws(()=>filterMenu(items,query,'all'),TypeError);
+ }
+ assert.equal(JSON.stringify(items),snapshot);
+});
+
+test('empty search and excluded product types avoid reading searchable fields',()=>{
+ const food={id:'food',kind:'food',get name(){throw Error('name should not be read');},get description(){throw Error('description should not be read');}};
+ const drink={id:'drink',kind:'drink',name:'Mint Tea',description:'Fresh mint'};
+ assert.deepEqual(filterMenu([food,drink],'','all'),[food,drink]);
+ assert.deepEqual(filterMenu([food,drink],'mint','drink'),[drink]);
+});
+
+test('multi-term catalog search reads each searchable field once per candidate',()=>{
+ let names=0,descriptions=0;
+ const food={kind:'food',get name(){names++;return 'Autumn Bowl';},get description(){descriptions++;return 'Roasted pumpkin and sage';}};
+ assert.deepEqual(filterMenu([food],'pumpkin autumn sage','food'),[food]);
+ assert.equal(names,1);
+ assert.equal(descriptions,1);
+});
+
+test('hyphen and slash separated menu terms match space-separated input',()=>{
+ const catalog=[{id:'one',kind:'food',name:'Gluten-free bread',description:'House-baked daily'},{id:'two',kind:'drink',name:'Orange/lemon spritz',description:null},{id:'three',kind:'food',name:'Gluten bread',description:null}];
+ const snapshot=JSON.stringify(catalog);
+ assert.deepEqual(filterMenu(catalog,'gluten free','food'),[catalog[0]]);
+ assert.deepEqual(filterMenu(catalog,'house baked','food'),[catalog[0]]);
+ assert.deepEqual(filterMenu(catalog,'orange lemon','drink'),[catalog[1]]);
+ assert.deepEqual(filterMenu(catalog,'gluten-free','food'),[catalog[0]]);
+ assert.deepEqual(filterMenu(catalog,'orange/lemon','food'),[]);
+ assert.equal(JSON.stringify(catalog),snapshot);
+});
+
+test('typographic dash and slash search works across product descriptions',()=>{
+ const catalog=[
+  {id:'one',kind:'food',name:'Chef’s special',description:'Slow–roasted vegetables / crème fraîche'},
+  {id:'two',kind:'drink',name:'Lime—mint cooler',description:'Alcohol-free'},
+  {id:'three',kind:'food',name:'Vegetable soup',description:'Served hot'}
+ ];
+ const snapshot=JSON.stringify(catalog);
+ assert.deepEqual(filterMenu(catalog,'slow roasted creme fraiche','food'),[catalog[0]]);
+ assert.deepEqual(filterMenu(catalog,'lime mint','drink'),[catalog[1]]);
+ assert.deepEqual(filterMenu(catalog,'alcohol free','drink'),[catalog[1]]);
+ assert.deepEqual(filterMenu(catalog,'lime mint','food'),[]);
+ assert.equal(JSON.stringify(catalog),snapshot);
+});
+
+test('straight and curly apostrophes match punctuation-free menu searches',()=>{
+ const catalog=[
+  {id:'one',kind:'food',name:'Chef’s special',description:"Today's soup"},
+  {id:'two',kind:'drink',name:"Bartender's choice",description:'House favourite'}
+ ];
+ const snapshot=JSON.stringify(catalog);
+ assert.deepEqual(filterMenu(catalog,'chefs special','food'),[catalog[0]]);
+ assert.deepEqual(filterMenu(catalog,"chef's special",'food'),[catalog[0]]);
+ assert.deepEqual(filterMenu(catalog,'todays soup','food'),[catalog[0]]);
+ assert.deepEqual(filterMenu(catalog,'bartenders choice','drink'),[catalog[1]]);
+ assert.deepEqual(filterMenu(catalog,'chefs special','drink'),[]);
+ assert.equal(JSON.stringify(catalog),snapshot);
+});
+
+test('available-only catalog filter composes with search and type without mutating server records',()=>{
+ const catalog=[
+  {id:'a',kind:'food',name:'Tomato soup',available:true},
+  {id:'b',kind:'food',name:'Tomato salad',available:false},
+  {id:'c',kind:'drink',name:'Tomato juice',available:true},
+  {id:'d',kind:'drink',name:'Water',available:false}
+ ];
+ const snapshot=JSON.stringify(catalog);
+ assert.deepEqual(filterMenu(catalog,'tomato','food',true),[catalog[0]]);
+ assert.deepEqual(filterMenu(catalog,'tomato','all',true),[catalog[0],catalog[2]]);
+ assert.deepEqual(filterMenu(catalog,'','all',true),[catalog[0],catalog[2]]);
+ assert.deepEqual(filterMenu(catalog,'','food',false),[catalog[0],catalog[1]]);
+ assert.throws(()=>filterMenu(catalog,'','all','true'),TypeError);
+ assert.equal(JSON.stringify(catalog),snapshot);
+});
+
+test('available-only filtering skips searching unavailable product fields',()=>{
+ const unavailable={kind:'food',available:false,get name(){throw Error('unavailable name should not be read');}};
+ const available={kind:'food',available:true,name:'Soup'};
+ assert.deepEqual(filterMenu([unavailable,available],'soup','food',true),[available]);
+});
+
+test('comma, parentheses and sentence punctuation are searchable word boundaries',()=>{
+ const catalog=[
+  {id:'food',kind:'food',name:'Soup (tomato, basil)',description:'Fresh crème; herbs',available:true},
+  {id:'drink',kind:'drink',name:'Lime: mint. cooler',available:false}
+ ];
+ const snapshot=JSON.stringify(catalog);
+ assert.deepEqual(filterMenu(catalog,'tomato basil','food',true),[catalog[0]]);
+ assert.deepEqual(filterMenu(catalog,'soup (tomato, basil)','food'),[catalog[0]]);
+ assert.deepEqual(filterMenu(catalog,'creme herbs','food'),[catalog[0]]);
+ assert.deepEqual(filterMenu(catalog,'lime mint cooler','drink'),[catalog[1]]);
+ assert.deepEqual(filterMenu(catalog,'lime mint','drink',true),[]);
+ assert.equal(JSON.stringify(catalog),snapshot);
+});
+
+test('ampersand and plus separators match menu search terms without altering catalog',()=>{
+ const catalog=[
+  {id:'food',kind:'food',name:'Fish & chips',description:'Salt + vinegar',available:true},
+  {id:'drink',kind:'drink',name:'Gin + tonic',description:'Lime & ice',available:false}
+ ];
+ const snapshot=JSON.stringify(catalog);
+ assert.deepEqual(filterMenu(catalog,'fish chips','food',true),[catalog[0]]);
+ assert.deepEqual(filterMenu(catalog,'salt vinegar','food'),[catalog[0]]);
+ assert.deepEqual(filterMenu(catalog,'gin tonic','drink'),[catalog[1]]);
+ assert.deepEqual(filterMenu(catalog,'lime ice','drink',true),[]);
+ assert.deepEqual(filterMenu(catalog,'fish & chips','drink'),[]);
+ assert.equal(JSON.stringify(catalog),snapshot);
+});
+
+test('international punctuation and currency symbols are word boundaries in menu search',()=>{
+ const catalog=[
+  {id:'a',kind:'food',name:'¿Sopa? ¡Picante!',description:'€12 · special',available:true},
+  {id:'b',kind:'drink',name:'Tea—mint',description:'Fresh',available:false}
+ ];
+ const snapshot=JSON.stringify(catalog);
+ assert.deepEqual(filterMenu(catalog,'sopa picante','food',true),[catalog[0]]);
+ assert.deepEqual(filterMenu(catalog,'12 special','food',true),[catalog[0]]);
+ assert.deepEqual(filterMenu(catalog,'tea mint','drink',true),[]);
+ assert.deepEqual(filterMenu(catalog,'tea mint','drink',false),[catalog[1]]);
+ assert.equal(JSON.stringify(catalog),snapshot);
+});

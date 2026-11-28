@@ -1,0 +1,149 @@
+{
+  "schema_version": "1.0.0",
+  "status": "standalone_design_only_unintegrated",
+  "milestone_date": "2026-11-20",
+  "title": "Ingredient-scoped eligible-stock to replenishment preview adapter",
+  "scope": "Read-only preview, synthetic data, no purchase-order creation",
+  "inputs": {
+    "venue_id": "required nonempty server-derived authenticated venue identifier",
+    "ingredient_id": "required nonempty venue-owned ingredient identifier",
+    "unit": "required canonical inventory unit, never implicitly converted",
+    "par_quantity": "nonnegative integer canonical minor units",
+    "lots": "venue_id, ingredient_id, unit, on_hand_quantity, withheld_quantity, expiry_status, revision"
+  },
+  "invariants": [
+    "Reject any lot whose venue_id or ingredient_id differs from the authenticated query scope; do not silently aggregate it",
+    "Reject mismatched units, negative quantities, withheld_quantity greater than on_hand_quantity, or missing revisions",
+    "Exclude expired, quarantined and unverified lots from eligible stock even if their withheld_quantity is zero",
+    "Eligible quantity for an approved lot is on_hand_quantity minus withheld_quantity",
+    "Suggested quantity is max(0, par_quantity minus sum of eligible quantities)",
+    "Return a read-only suggestion requiring human approval; never automatically create an order",
+    "Read lots and revisions in a consistent SQLite snapshot; any subsequent action must revalidate current revisions",
+    "A failed or incomplete read must return an error rather than a potentially misleading zero-stock suggestion"
+  ],
+  "examples": [
+    {
+      "name": "shortfall_withheld",
+      "venue_id": "fictional-v1",
+      "ingredient_id": "fictional-i1",
+      "unit": "g",
+      "par_quantity": 10000,
+      "lots": [
+        {
+          "venue_id": "fictional-v1",
+          "ingredient_id": "fictional-i1",
+          "unit": "g",
+          "on_hand_quantity": 7000,
+          "withheld_quantity": 3000,
+          "expiry_status": "approved",
+          "revision": 1
+        }
+      ],
+      "expected_eligible": 4000,
+      "expected_suggestion": 6000
+    },
+    {
+      "name": "par_satisfied",
+      "venue_id": "fictional-v1",
+      "ingredient_id": "fictional-i1",
+      "unit": "g",
+      "par_quantity": 5000,
+      "lots": [
+        {
+          "venue_id": "fictional-v1",
+          "ingredient_id": "fictional-i1",
+          "unit": "g",
+          "on_hand_quantity": 6000,
+          "withheld_quantity": 0,
+          "expiry_status": "approved",
+          "revision": 1
+        }
+      ],
+      "expected_eligible": 6000,
+      "expected_suggestion": 0
+    },
+    {
+      "name": "expired_excluded",
+      "venue_id": "fictional-v1",
+      "ingredient_id": "fictional-i1",
+      "unit": "g",
+      "par_quantity": 5000,
+      "lots": [
+        {
+          "venue_id": "fictional-v1",
+          "ingredient_id": "fictional-i1",
+          "unit": "g",
+          "on_hand_quantity": 9000,
+          "withheld_quantity": 0,
+          "expiry_status": "expired",
+          "revision": 1
+        }
+      ],
+      "expected_eligible": 0,
+      "expected_suggestion": 5000
+    },
+    {
+      "name": "cross_venue_rejected",
+      "venue_id": "fictional-v1",
+      "ingredient_id": "fictional-i1",
+      "unit": "g",
+      "par_quantity": 5000,
+      "lots": [
+        {
+          "venue_id": "fictional-v2",
+          "ingredient_id": "fictional-i1",
+          "unit": "g",
+          "on_hand_quantity": 1000,
+          "withheld_quantity": 0,
+          "expiry_status": "approved",
+          "revision": 1
+        }
+      ],
+      "expected_error": "scope_mismatch"
+    },
+    {
+      "name": "cross_ingredient_rejected",
+      "venue_id": "fictional-v1",
+      "ingredient_id": "fictional-i1",
+      "unit": "g",
+      "par_quantity": 5000,
+      "lots": [
+        {
+          "venue_id": "fictional-v1",
+          "ingredient_id": "fictional-i2",
+          "unit": "g",
+          "on_hand_quantity": 1000,
+          "withheld_quantity": 0,
+          "expiry_status": "approved",
+          "revision": 1
+        }
+      ],
+      "expected_error": "scope_mismatch"
+    },
+    {
+      "name": "invalid_withheld_rejected",
+      "venue_id": "fictional-v1",
+      "ingredient_id": "fictional-i1",
+      "unit": "g",
+      "par_quantity": 5000,
+      "lots": [
+        {
+          "venue_id": "fictional-v1",
+          "ingredient_id": "fictional-i1",
+          "unit": "g",
+          "on_hand_quantity": 1000,
+          "withheld_quantity": 2000,
+          "expiry_status": "approved",
+          "revision": 1
+        }
+      ],
+      "expected_error": "invalid_quantity"
+    }
+  ],
+  "dependencies": [
+    "Inspect latest develop inventory lot model and existing replenishment preview before integration",
+    "Confirm authenticated server-derived venue context",
+    "Add SQLite snapshot and stale-revision regression tests"
+  ],
+  "safety": "Offline design only; no live suppliers, purchases, customer data, credentials or deployment"
+}

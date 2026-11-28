@@ -1,0 +1,37 @@
+.manager-overview{min-width:0}.manager-overview-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:18px}.manager-overview-heading h2{margin:0 0 6px}.manager-overview-heading p,.manager-overview-note{color:#b0c6d1;font-size:.875rem;margin:0}.manager-overview-mode{border:1px solid #3d817b;color:#8ce3d6;border-radius:999px;padding:7px 12px;font-size:.75rem;font-weight:700;letter-spacing:.04em}.manager-overview-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:15px}.manager-overview-metric{min-width:0;border:1px solid #2d5269;border-radius:14px;padding:18px;background:linear-gradient(135deg,#12344a,#0d293d)}.manager-overview-metric>span,.manager-overview-metric>small{display:block;color:#b6cbd5;font-size:.82rem}.manager-overview-metric strong{display:block;font-size:clamp(1.1rem,2.1vw,1.75rem);overflow-wrap:anywhere;margin:12px 0}.manager-overview-metric small{color:#70d8d2}.manager-overview-metric p{color:#b6cbd5;font-size:.78rem;margin:10px 0 0}.manager-overview-actions{display:flex;flex-wrap:wrap;gap:12px;margin:20px 0}.manager-overview-actions button{min-height:44px}@media(max-width:1000px){.manager-overview-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:550px){.manager-overview-metrics{grid-template-columns:1fr}}@media(forced-colors:active){.manager-overview-mode,.manager-overview-metric{border:1px solid CanvasText}}
+.manager-history{border:1px solid #2d5269;border-radius:14px;background:#0d293d;padding:18px;margin:20px 0;min-width:0}
+.manager-history-heading{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.manager-history-heading h3{margin:0 0 5px}.manager-history-heading p{margin:0;color:#b0c6d1;font-size:.85rem}
+.manager-history-heading label{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.manager-history-heading select{background:#0c273a;color:#edf5f8;border:1px solid #385c72;border-radius:8px;padding:10px;min-height:44px}
+.manager-history-empty{border:1px dashed #52768a;border-radius:9px;padding:24px;margin:18px 0;color:#d4e5eb}
+.manager-history-empty p{margin:7px 0 0;color:#b0c6d1}
+.manager-history-table{width:100%;border-collapse:collapse;text-align:left;font-size:.85rem}
+.manager-history-table caption{text-align:left;color:#b0c6d1;margin-bottom:9px}
+.manager-history-table th,.manager-history-table td{border-bottom:1px solid #315269;padding:11px 8px;overflow-wrap:anywhere}
+.manager-history-table td:last-child{color:#e7c78a}
+@media(max-width:550px){.manager-history{padding:12px}.manager-history-table{font-size:.75rem}.manager-history-table th,.manager-history-table td{padding:9px 4px}}
+@media(forced-colors:active){.manager-history,.manager-history-empty{border-color:CanvasText}}
+
+/* Fixed fictional chart, intentionally separate from unavailable historical records. */
+.manager-illustration{border:1px solid #2d5269;border-radius:14px;background:linear-gradient(135deg,#12344a,#0d293d);padding:18px;margin:20px 0;min-width:0}
+.manager-illustration h3{margin:0 0 5px}
+.manager-illustration p{color:#b6cbd5;font-size:.85rem;margin:0}
+.manager-illustration-bars{list-style:none;padding:16px 0 0;margin:14px 0;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:clamp(5px,2vw,16px);height:180px;border-bottom:1px solid #52768a}
+.manager-illustration-bars li{min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:3px}
+.manager-illustration-bar{display:block;width:min(100%,48px);background:#38b9b3;border-radius:5px 5px 0 0;min-height:2px}
+.manager-illustration-bars strong,.manager-illustration-bars small{font-size:.75rem;line-height:1.2}
+.manager-illustration-bars small{color:#c4d9df}
+.manager-illustration .manager-illustration-disclaimer{margin-top:18px}
+@media(max-width:550px){.manager-illustration{padding:12px}.manager-illustration-bars{gap:4px;height:150px}.manager-illustration-bars strong,.manager-illustration-bars small{font-size:.68rem}}
+@media(forced-colors:active){.manager-illustration{border-color:CanvasText}.manager-illustration-bar{background:Highlight}}
+
+/* Native disclosure keeps the fictional chart's numbers available without relying on bar height. */
+.manager-illustration-data{margin-top:14px;color:#edf5f8}
+.manager-illustration-data summary{cursor:pointer;min-height:44px;display:list-item;padding:11px 4px;font-weight:600}
+.manager-illustration-data summary:focus-visible{outline:3px solid #70d8d2;outline-offset:3px;border-radius:4px}
+.manager-illustration-data table{width:100%;border-collapse:collapse;text-align:left;font-size:.875rem}
+.manager-illustration-data caption{text-align:left;color:#b6cbd5;padding:10px 0}
+.manager-illustration-data th,.manager-illustration-data td{border-bottom:1px solid #315269;padding:9px 12px}
+.manager-illustration-data td{text-align:right;font-variant-numeric:tabular-nums}
+@media(forced-colors:active){.manager-illustration-data summary:focus-visible{outline-color:Highlight}}
