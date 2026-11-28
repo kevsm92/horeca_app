@@ -38,3 +38,13 @@ test('successful draft submission navigates to the draft week without publishing
  assert.match(source,/setDraftNotice\('Fictional shift draft added in this browser only\. Nothing was published\.'\)/);
  assert.match(source,/setDraftNotice\('Fictional shift draft updated in this browser only\. Nothing was published\.'\)/);
 });
+
+test('daily agenda can duplicate an unsaved draft without publishing',async()=>{
+ const {readFileSync}=await import('node:fs');
+ const {fileURLToPath}=await import('node:url');
+ const source=readFileSync(fileURLToPath(new URL('../src/WeeklySchedule.jsx',import.meta.url)),'utf8');
+ assert.match(source,/Duplicate unsaved draft for /);
+ assert.match(source,/from daily agenda/);
+ assert.match(source,/setCopyDraft\(\{\.\.\.draft,id:"copy:"\+draft\.id\}\);setDraftOpen\(true\)/);
+ assert.match(source,/Change the date or time before adding this duplicate draft\./);
+});
