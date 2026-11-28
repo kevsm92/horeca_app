@@ -41,3 +41,16 @@ export function displayMetric(metric) {
   if (metric.value===null || metric.value===undefined) throw new TypeError('Demo metric missing value');
   return {...metric,status:'Demo · not live'};
 }
+
+/**
+ * Presentation boundary: corrupt synthetic fixtures must not crash the manager
+ * overview or be silently interpreted as real zeroes. This never calls an API.
+ */
+export function safeDemoDashboardMetrics(input) {
+  try {
+    return {metrics: demoDashboardMetrics(input).map(displayMetric), invalidDemoData: false};
+  } catch (error) {
+    if (!(error instanceof TypeError)) throw error;
+    return {metrics: [], invalidDemoData: true};
+  }
+}
