@@ -67,3 +67,13 @@ test('draft editor focuses its heading and offers cancellation for new as well a
  assert.match(source,/<h3 ref=\{draftHeadingRef\} tabIndex=\{-1\}>/);
  assert.match(source,/<button type="button" onClick=\{\(\)=>\{setEditingDraftId\(null\);setCopyDraft\(null\);setDraftOpen\(false\);setDraftError\(''\);\}\}>Cancel draft form<\/button>/);
 });
+
+test('successful synthetic draft creation closes the editor and navigates to its week',async()=>{
+ const {readFileSync}=await import('node:fs');
+ const {fileURLToPath}=await import('node:url');
+ const source=readFileSync(fileURLToPath(new URL('../src/WeeklySchedule.jsx',import.meta.url)),'utf8');
+ assert.match(source,/const draft=createDemoShiftDraft\(input,demoRoster\(DEMO_WEEK\),drafts\);setDrafts\(old=>\[\.\.\.old,draft\]\);setCopyDraft\(null\);setDraftOpen\(false\)/);
+ assert.doesNotMatch(source,/event\.currentTarget\.reset\(\)/);
+ assert.match(source,/chooseDate\(input\.date\);setView\('grid'\)/);
+ assert.match(source,/Nothing was published\./);
+});
